@@ -1,0 +1,52 @@
+{
+  "name": "tetracoord",
+  "version": "0.6.0",
+  "description": "Tetracoordinates engine, calculator.",
+  "main": "src/tetracoord/index.ts",
+  "scripts": {
+    "_test": "NODE_OPTIONS=\"--import=tsx\" mocha",
+    "test": "npm run _test -- test/**/*.ts",
+    "cli": "tsx src/cli_driver.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ogallagher/tetracoord.git"
+  },
+  "keywords": [
+    "tetracoordinates",
+    "typescript",
+    "geometry",
+    "2d",
+    "vector",
+    "math",
+    "number-system",
+    "arithmetic",
+    "space-filling-curve",
+    "fractal",
+    "sierpinski-triangle"
+  ],
+  "author": "Owen Gallagher",
+  "license": "SEE LICENSE IN license.txt",
+  "bugs": {
+    "url": "https://github.com/ogallagher/tetracoord/issues"
+  },
+  "homepage": "https://github.com/ogallagher/tetracoord#readme",
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^18.19.130",
+    "@types/pino": "^7.0.4",
+    "@types/yargs": "^17.0.33",
+    "mocha": "^11.7.4",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "pino": "^10.0.0",
+    "pts-math": "^0.12.9",
+    "subscript": "^9.1.0"
+  },
+  "optionalDependencies": {
+    "pino-pretty": "^13.1.2",
+    "tsx": "^4.20.6",
+    "yargs": "^18.0.0"
+  }
+}
