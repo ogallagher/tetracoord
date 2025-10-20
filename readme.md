@@ -4,12 +4,24 @@ Tetracoordinates engine and calculator.
 
 ![tetracoord explorer preview](docs/img/tcoord_ccoord_displays_2022-08-06.png)
 
+## Install
+
+The node package is available at [npmjs/tetracoord](https://www.npmjs.com/package/tetracoord).
+
+```shell
+# --global opt assumes we are not using this as a library, but simply want to run the cli command
+npm install --global tetracoord
+
+# run installed cli command from any filesystem location
+npx tcoord
+```
+
 ## CLI driver
 
-Run cli driver with `npm run cli -- -e "<expression>"` to evaluate an arithmetic or logical expression with scalar and vector terms. 
-See `npm run cli -- --help` for all options.
+Run cli driver with `npx tcoord -e "<expression>"` (or `npm run cli -- -e "<expression>"` if within the source repo) to evaluate an arithmetic or logical expression with scalar and vector terms. 
+See `npx tcoord --help` for all options.
 
-The program loops, prompting for a new set of opts after each expression is evaluated. So running with no input simply as `npm run cli` is convenient, and avoids some erroneous opt parsing when provided through `npm run`.
+The program loops, prompting for a new set of opts after each expression is evaluated. So running with no input simply as `npm run cli` is convenient.
 
 Examples:
 
