@@ -20,8 +20,6 @@
     "types": []
   },
   "exclude": [
-    "node_modules",
-    "local",
-    "test"
+    "node_modules"
   ]
 }
