@@ -10,7 +10,7 @@ import {
   CartesianCoordinate,
   TRIG_PI_OVER_2, TRIG_PI_OVER_6, TRIG_PI
 } from "./vector"
-import { Group, GroupLike, Pt } from "pts-math"
+import { Group, GroupLike, Pt, PtLike } from "pts-math"
 
 // constants
 
@@ -151,7 +151,7 @@ export class TetracoordSpace {
   constructor(
     orientation?: Orientation,
     scale?: number,
-    origin?: Pt | CartesianCoordinate
+    origin?: PtLike | CartesianCoordinate
   ) {
     orientation === undefined ? orientation = Orientation.DEFAULT : orientation
     scale === undefined ? scale = 1 : scale
@@ -159,11 +159,11 @@ export class TetracoordSpace {
 
     this.orientation = orientation
     this.scale = scale
-    if (origin instanceof Pt) {
-      this.origin = origin
+    if (origin instanceof CartesianCoordinate) {
+      this.origin = origin.toRaw()
     }
     else {
-      this.origin = origin instanceof Pt ? origin : origin.toRaw()
+      this.origin = new Pt(origin)
     }
   }
 
