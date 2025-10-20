@@ -1,21 +1,11 @@
-/**
- * Tetracoordinates package.
- */
+export * as scalar from "./scalar"
+export * from "./scalar"
 
-// imports
+export * as calculator from "./calculator"
+export * from "./calculator"
 
-import { CartesianCoordinate } from "./vector/cartesian"
-import { Tetracoordinate } from "./vector/tetracoordinate"
-import { TetracoordSpace, TetracoordCell } from "./tetracoord_space"
-import { TetracoordEngine } from "./tetracoord_engine"
+export * as vector from "./vector"
+export * from "./vector"
 
-// exports
-
-export {
-  CartesianCoordinate,
-  Tetracoordinate,
-  TetracoordSpace, TetracoordCell,
-  TetracoordEngine
-}
-
-export default TetracoordEngine
+export * as space from "./tetracoord_space"
+export * from "./tetracoord_space"

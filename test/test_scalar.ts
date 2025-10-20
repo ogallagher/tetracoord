@@ -1,12 +1,10 @@
 import { describe, it } from "mocha"
 import assert from "node:assert"
-import { parsePowerScalar, PowerScalar } from "../src/tetracoord/scalar"
-import { RadixType } from "../src/tetracoord/scalar/radix"
-import { ByteLevelOrder } from "../src/tetracoord/scalar/byte"
+import { parsePowerScalar, PowerScalar, RadixType, ByteLevelOrder } from "../src/tetracoord/scalar"
 
 function testParsePowerScalar(d: number|string, r: RadixType, i: boolean, o?: ByteLevelOrder) {
   try {
-    return parsePowerScalar(d as number|string, r as RadixType, i, o)
+    return parsePowerScalar(d as number|string, r as RadixType, i, o) as PowerScalar
   }
   catch (err) {
     throw new Error(`PowerScalar parse error at d=${d} r=${r}`, {cause: err})

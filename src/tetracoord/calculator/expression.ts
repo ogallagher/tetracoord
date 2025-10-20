@@ -1,11 +1,11 @@
 import { parse } from "./parser"
 import CartesianCoordinate from "../vector/cartesian"
-import { parsePowerScalar, PowerScalar } from "../scalar"
+import { parsePowerScalar, PowerScalar } from "../scalar/powerscalar"
 import { RadixType } from "../scalar/radix"
 import { VectorType } from "../vector/const"
 import Tetracoordinate from "../vector/tetracoordinate"
 import { ABS_GROUP_OP, DIV_OP, EQ_LOOSE_OP, EQ_STRICT_OP, EXP_OP, GROUP_OP, IRR_SUFFIX_DOTS, IRR_SUFFIX_I, IRR_SUFFIX_OP, ITEM_DELIM_OP, MUL_OP, NEG_OP, NEQ_STRICT_OP, POS_OP, RADIX_PREFIX, RADIX_PREFIX_OP, VEC_ACCESS_OP } from "./symbol"
-import pino from 'pino'
+import pino from "pino"
 
 export type ExpressionValue = number|PowerScalar|Tetracoordinate|CartesianCoordinate|boolean
 /**

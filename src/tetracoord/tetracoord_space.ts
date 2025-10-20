@@ -5,15 +5,11 @@
 // imports
 
 import {
-  Orientation
-} from "./vector/const"
-import {
-  Quads,
-  Tetracoordinate
-} from "./vector/tetracoordinate"
-import CartesianCoordinate, {
+  Orientation,
+  Quads, Tetracoordinate,
+  CartesianCoordinate,
   TRIG_PI_OVER_2, TRIG_PI_OVER_6, TRIG_PI
-} from "./vector/cartesian"
+} from "./vector"
 import { Group, GroupLike, Pt } from "pts-math"
 
 // constants

@@ -1,11 +1,12 @@
 import { describe, it } from "mocha"
 import assert from "node:assert"
-import { ExpressionInnerValue, evalExpression, preparseExpression } from "../src/tetracoord/calculator/expression"
-import Ccoord, { TRIG_COS_PI_OVER_6, TRIG_SIN_PI_OVER_6 } from "../src/tetracoord/vector/cartesian"
-import { parsePowerScalar, PowerScalar } from "../src/tetracoord/scalar"
-import { Tetracoordinate as Tcoord } from "../src/tetracoord"
-import { RadixType } from "../src/tetracoord/scalar/radix"
-import { ABS_GROUP_OP } from "../src/tetracoord/calculator/symbol"
+import { ExpressionInnerValue, evalExpression, preparseExpression, ABS_GROUP_OP } from "../src/tetracoord/calculator"
+import { parsePowerScalar, PowerScalar, RadixType } from "../src/tetracoord/scalar"
+import { 
+  Tetracoordinate as Tcoord, 
+  CartesianCoordinate as Ccoord, 
+  TRIG_COS_PI_OVER_6, TRIG_SIN_PI_OVER_6 
+} from "../src/tetracoord/vector"
 
 /**
  * Calls `evalExpression` with additional error details on failure.
@@ -544,8 +545,8 @@ describe('tetracoord', () => {
           ['cc[3, (2*2)]', new Ccoord(3, 4)],
   
           // tcoord
-          ['tc[(0d2 * 0d2)]', new Tcoord(parsePowerScalar(4, RadixType.D))],
-          ['tc[(2 * 2)]', new Tcoord(parsePowerScalar('10', RadixType.Q))] // implied radix=q for tcoord
+          ['tc[(0d2 * 0d2)]', new Tcoord(parsePowerScalar(4, RadixType.D)!)],
+          ['tc[(2 * 2)]', new Tcoord(parsePowerScalar('10', RadixType.Q)!)] // implied radix=q for tcoord
         ]) {
           actual = testEvalExpression(input as string)
           if (typeof expected === 'number') {

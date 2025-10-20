@@ -1,3 +1,6 @@
+/**
+ * The order that the scalar value's digits are stored (and displayed).
+ */
 export enum ByteLevelOrder {
     HIGH_FIRST = 'h',
     LOW_FIRST = 'l',

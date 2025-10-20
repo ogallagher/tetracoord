@@ -62,14 +62,3 @@ Pass opts and file patterns to `mocha` with `npm run _test -- <opts> <files>`.
 `npm run _test -- <files>`.
 - Run tests with a given substring in the description with 
 `npm run _test -- -f <name> test/*`.
-
-## Filesystem
-
-### `src/`
-
-### `test/`
-
-### `public/`
-
-### `pages/`
-

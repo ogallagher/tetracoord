@@ -2,17 +2,13 @@
  * Tetracoord engine cli driver.
  */
 
-import pino from "pino"
-import { Level } from "pino"
+import pino, { Level } from "pino"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
-import { RadixType } from "./tetracoord/scalar/radix"
-import { VectorType } from "./tetracoord/vector/const"
-import { evalExpression, logger as cLogger, ExpressionValue } from "./tetracoord/calculator/expression"
-import { parsePowerScalar, PowerScalar } from "./tetracoord/scalar"
-import Tetracoordinate from "./tetracoord/vector/tetracoordinate"
-import CartesianCoordinate from "./tetracoord/vector/cartesian"
-import * as readline from 'node:readline/promises'
+import { RadixType, parsePowerScalar, PowerScalar } from "./tetracoord/scalar"
+import { VectorType, Tetracoordinate, CartesianCoordinate } from "./tetracoord/vector"
+import { evalExpression, logger as cLogger, ExpressionValue } from "./tetracoord/calculator"
+import * as readline from "node:readline/promises"
 
 const logStream = pino.destination({
   dest: process.stdout.fd,
@@ -211,7 +207,7 @@ async function main(opts: Opts): Promise<Opts> {
   return opts
 }
 
-async function wrapper(argv?: string[]) {
+async function wrapper(argv?: string[]|string) {
   await new Promise((res) => {
     if (argv) {
       res(argv)
@@ -232,6 +228,10 @@ async function wrapper(argv?: string[]) {
       logger.info('explicit quit')
     }
   })
+}
+export default wrapper
+export {
+  wrapper as cli
 }
 
 try {

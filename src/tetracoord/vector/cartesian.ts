@@ -1,5 +1,5 @@
 import { PtLike, Pt } from "pts-math"
-import { parsePowerScalar, PowerScalar } from "../scalar"
+import { parsePowerScalar, PowerScalar } from "../scalar/powerscalar"
 import { RadixType } from "../scalar/radix"
 import { VectorType } from "./const"
 import { ITEM_DELIM_OP, VEC_ACCESS_OP } from "../calculator/symbol"

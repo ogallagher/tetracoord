@@ -1,0 +1,14 @@
+test/**/*
+local/**/*
+dist/**/*
+.vscode/**/*
+**/*.ts
+# include type declarations
+# !types/**/* not working; see tsconfig.json
+!**/*.d.ts
+# exclude source maps
+**/*.js.map
+**/*.tgz
+tsconfig.json
+tsconfig.*.json
+**/*.tsbuildinfo
