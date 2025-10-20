@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /**
  * Tetracoord engine cli driver.
  */
