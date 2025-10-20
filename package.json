@@ -6,11 +6,13 @@
   "scripts": {
     "_test": "NODE_OPTIONS=\"--import=tsx\" mocha",
     "test": "npm run _test -- test/**/*.ts",
+    "testjs": "mocha test/**/*.js",
+    "pretestjs": "npm run compile",
     "cli": "tsx src/cli_driver.ts",
     "compile": "tsc --build tsconfig.json",
     "_pack": "npm pack --pack-destination dist",
     "prepublish": "npm run compile && npm run _pack",
-    "clean": "rm src/**/*.js src/**/*.js.map src/**/*.d.ts"
+    "clean": "rm src/**/*.js; rm src/**/*.d.ts; rm src/**/*.js.map"
   },
   "repository": {
     "type": "git",

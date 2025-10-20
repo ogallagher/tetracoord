@@ -2,7 +2,7 @@ import { ByteLevelOrder, Imaginary, imaginary } from "./byte"
 import { B_BITS_PER_LEVEL, B_LEVELS_PER_BYTE, B_VALUES_PER_LEVEL, BITS_PER_BYTE } from "./binary"
 import { Q_BITS_PER_LEVEL, Q_LEVELS_PER_BYTE, Q_VALUES_PER_LEVEL } from "./quaternary"
 import { RadixType, radixToIrrDen, radixTypeToValue, radixValueToType } from "./radix"
-import { IRR_SUFFIX_I, NEG_OP, RADIX_PREFIX, WHOL_FRAC_DELIM } from "../calculator"
+import { IRR_SUFFIX_I, NEG_OP, RADIX_PREFIX, WHOL_FRAC_DELIM } from "../calculator/symbol"
 import { RawScalar, RawScalarType, Sign } from "./const"
 
 /**
