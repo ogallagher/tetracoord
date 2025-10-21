@@ -6,18 +6,8 @@ import { VectorType } from "../vector/const"
 import Tetracoordinate from "../vector/tetracoordinate"
 import { ABS_GROUP_OP, DIV_OP, EQ_LOOSE_OP, EQ_STRICT_OP, EXP_OP, GROUP_OP, IRR_SUFFIX_DOTS, IRR_SUFFIX_I, IRR_SUFFIX_OP, ITEM_DELIM_OP, MUL_OP, NEG_OP, NEQ_STRICT_OP, POS_OP, RADIX_PREFIX, RADIX_PREFIX_OP, VEC_ACCESS_OP } from "./symbol"
 import pino from "pino"
-
-export type ExpressionValue = number|PowerScalar|Tetracoordinate|CartesianCoordinate|boolean
-/**
- * Used for values like {@linkcode CartesianCoordinate ccoords} that consume a list of components.
- */
-class ExpressionValueCollection {
-  constructor(public items: ExpressionValue[]) {}
-}
-export type ExpressionInnerValue = ExpressionValue|ExpressionValueCollection
-
-export type ExpressionLeaf = ExpressionInnerValue|string|null|undefined
-export type ExpressionTree = (ExpressionLeaf|ExpressionTree)[]
+import type { ExpressionValue, ExpressionTree, ExpressionInnerValue, ExpressionLeaf } from "./const"
+import { ExpressionValueCollection } from "./const"
 
 export const logger = pino({
   name: 'calculator.expression',

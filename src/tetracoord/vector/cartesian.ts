@@ -2,7 +2,9 @@ import { PtLike, Pt } from "pts-math"
 import { parsePowerScalar, PowerScalar } from "../scalar/powerscalar"
 import { RadixType } from "../scalar/radix"
 import { VectorType } from "./const"
+import type { VectorTypeCC } from "./const"
 import { ITEM_DELIM_OP, VEC_ACCESS_OP } from "../calculator/symbol"
+import type { SerialCartesianCoord } from "../serialize/const"
 
 export const TRIG_PI = Math.PI
 export const TRIG_PI_OVER_2 = Math.PI / 2
@@ -16,18 +18,10 @@ export const TRIG_COS_PI_OVER_3 = TRIG_SIN_PI_OVER_6
 
 export type RawCartesianCoord = PtLike
 
-export class CartesianCoordinate {
-  /**
-   * Vector value expressed in simple scalar numbers.
-   */
+export class CartesianCoordinate implements SerialCartesianCoord {
+  type: VectorTypeCC = VectorType.CCoord
   v: Pt
-  /**
-   * Vector x component as a power scalar.
-   */
   x: PowerScalar
-  /**
-   * Vector x component as a power scalar.
-   */
   y: PowerScalar
 
   constructor(x: number|PowerScalar, y: number|PowerScalar) {
