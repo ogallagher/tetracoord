@@ -5,7 +5,7 @@ import { Tetracoordinate } from "../vector/tetracoordinate"
 import { VectorType } from "../vector/const"
 import type { SerialCartesianCoord, SerialExprVal, Serializable, SerialPowerScalar, SerialTetracoord } from "./const"
 import { CartesianCoordinate } from "../vector"
-import { ExpressionValue } from "../calculator/const"
+import type { ExpressionPrimitiveValue, ExpressionValue } from "../calculator/const"
 
 /**
  * @param val 
@@ -38,11 +38,11 @@ export function serialize(val: SerialExprVal) {
       return cc
 
     default:
-      throw new Error(`failed to serialize `)
+      throw new Error(`failed to serialize ${val}=${JSON.stringify(val)}`)
   }
 }
 
-export function deserialize(obj: Serializable): ExpressionValue {
+export function deserialize(obj: Serializable | ExpressionPrimitiveValue): ExpressionValue {
   if (typeof obj === 'number' || typeof obj === 'boolean') {
     return obj
   }
@@ -71,3 +71,5 @@ export function deserialize(obj: Serializable): ExpressionValue {
       throw new Error(`failed to serialize ${obj} type=${obj.type}`)
   }
 }
+
+export * from "./const"

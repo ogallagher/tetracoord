@@ -1,7 +1,8 @@
 import type { Pt } from "pts-math"
 import { VAR_ANS_ID, VarCtxId } from "../calculator/symbol"
-import { ByteLevelOrder, PowerScalar, RadixType, RawScalar, ScalalarTypePower, Sign } from "../scalar"
+import { ByteLevelOrder, PowerScalar, RadixType, RawScalar, ScalarType, ScalarTypePower, Sign } from "../scalar"
 import type { VectorTypeCC, VectorTypeTC } from "../vector"
+import type { ExpressionPrimitiveValue } from "../calculator/const"
 
 export interface Serializable {
   /**
@@ -11,7 +12,7 @@ export interface Serializable {
 }
 export type SerialBytes = number[]
 export interface SerialPowerScalar extends Serializable {
-  type: ScalalarTypePower
+  type: ScalarTypePower
   /**
    * If decimal, raw positive integer. If quaternary or binary, byte array.
    */
@@ -66,7 +67,7 @@ export interface SerialCartesianCoord extends Serializable {
    */
   y: PowerScalar|SerialPowerScalar
 }
-export type SerialExprVal = number | boolean | SerialPowerScalar | SerialTetracoord | SerialCartesianCoord
+export type SerialExprVal = ExpressionPrimitiveValue | SerialPowerScalar | SerialTetracoord | SerialCartesianCoord
 export interface SerialVarCtx extends Serializable {
   type: VarCtxId
   /**

@@ -4,7 +4,7 @@ import { RadixType } from "../scalar/radix"
 import { VectorType } from "./const"
 import type { VectorTypeCC } from "./const"
 import { ITEM_DELIM_OP, VEC_ACCESS_OP } from "../calculator/symbol"
-import type { SerialCartesianCoord } from "../serialize/const"
+import type { SerialCartesianCoord } from "../serializer/const"
 
 export const TRIG_PI = Math.PI
 export const TRIG_PI_OVER_2 = Math.PI / 2

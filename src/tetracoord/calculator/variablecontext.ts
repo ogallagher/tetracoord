@@ -1,4 +1,4 @@
-import type { SerialExprVal, SerialVarCtx } from "../serialize/const"
+import type { SerialExprVal, SerialVarCtx } from "../serializer/const"
 import type { VarCtxId } from "./symbol"
 import { VAR_CTX_ID, VAR_ANS_ID } from "./symbol"
 

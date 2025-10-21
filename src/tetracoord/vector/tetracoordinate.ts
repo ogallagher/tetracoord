@@ -15,7 +15,7 @@ import { VEC_ACCESS_OP } from "../calculator/symbol"
 import { Pt } from "pts-math"
 import { VectorType } from "./const"
 import type { VectorTypeTC } from "./const"
-import type { SerialTetracoord } from "../serialize/const"
+import type { SerialTetracoord } from "../serializer/const"
 
 // ts types interfaces
 

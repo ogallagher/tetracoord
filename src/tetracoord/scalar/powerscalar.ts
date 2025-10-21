@@ -3,8 +3,9 @@ import { B_BITS_PER_LEVEL, B_LEVELS_PER_BYTE, B_VALUES_PER_LEVEL, BITS_PER_BYTE 
 import { Q_BITS_PER_LEVEL, Q_LEVELS_PER_BYTE, Q_VALUES_PER_LEVEL } from "./quaternary"
 import { RadixType, radixToIrrDen, radixTypeToValue, radixValueToType } from "./radix"
 import { IRR_SUFFIX_I, NEG_OP, RADIX_PREFIX, WHOL_FRAC_DELIM } from "../calculator/symbol"
-import { RawScalar, RawScalarType, ScalarType, Sign } from "./const"
-import type { SerialPowerScalar, SerialBytes } from "../serialize/const"
+import type { RawScalar, ScalarTypePower, Sign } from "./const"
+import { ScalarType, RawScalarType } from "./const"
+import type { SerialPowerScalar } from "../serializer/const"
 
 export type PowerScalarConstructorIn = {
   digits: RawScalar
@@ -22,7 +23,7 @@ export type PowerScalarConstructorIn = {
  * Other attributes (ex. {@linkcode PowerScalar.radix radix}, {@linkcode PowerScalar.power power}) are stored separately in order to retrieve the raw value.
  */
 export class PowerScalar implements SerialPowerScalar {
-  type: ScalarType.PowerScalar
+  type: ScalarTypePower = ScalarType.PowerScalar
   digits: RawScalar
   radix: RadixType
   power: number

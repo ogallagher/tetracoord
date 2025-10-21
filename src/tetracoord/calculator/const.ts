@@ -1,7 +1,8 @@
 import type { PowerScalar } from "../scalar"
 import type { Tetracoordinate, CartesianCoordinate } from "../vector"
 
-export type ExpressionValue = number | PowerScalar | Tetracoordinate | CartesianCoordinate | boolean
+export type ExpressionPrimitiveValue = number | boolean
+export type ExpressionValue = ExpressionPrimitiveValue | PowerScalar | Tetracoordinate | CartesianCoordinate
 /**
  * Used for values like {@linkcode CartesianCoordinate ccoords} that consume a list of components.
  */
