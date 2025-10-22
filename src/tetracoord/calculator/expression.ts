@@ -4,10 +4,11 @@ import { parsePowerScalar, PowerScalar } from "../scalar/powerscalar"
 import { RadixType } from "../scalar/radix"
 import { VectorType } from "../vector/const"
 import Tetracoordinate from "../vector/tetracoordinate"
-import { ABS_GROUP_OP, DIV_OP, EQ_LOOSE_OP, EQ_STRICT_OP, EXP_OP, GROUP_OP, IRR_SUFFIX_DOTS, IRR_SUFFIX_I, IRR_SUFFIX_OP, ITEM_DELIM_OP, MUL_OP, NEG_OP, NEQ_STRICT_OP, POS_OP, RADIX_PREFIX, RADIX_PREFIX_OP, VEC_ACCESS_OP } from "./symbol"
+import { ABS_GROUP_OP, ASSIGN_OP, DIV_OP, EQ_LOOSE_OP, EQ_STRICT_OP, EXP_OP, GROUP_OP, IRR_SUFFIX_DOTS, IRR_SUFFIX_I, IRR_SUFFIX_OP, ITEM_DELIM_OP, MUL_OP, NEG_OP, NEQ_STRICT_OP, POS_OP, RADIX_PREFIX, RADIX_PREFIX_OP, VAR_ACCESS_BRACKET_OP, VAR_ACCESS_DOT_OP, VAR_ANS_ID, VAR_CTX_ID, VEC_ACCESS_OP } from "./symbol"
 import pino from "pino"
 import type { ExpressionValue, ExpressionTree, ExpressionInnerValue, ExpressionLeaf } from "./const"
 import { ExpressionValueCollection } from "./const"
+import { VariableContext } from "./variablecontext"
 
 export const logger = pino({
   name: 'calculator.expression',
@@ -261,10 +262,56 @@ function evalEq(op: '==='|'==', a: ExpressionValue, b: ExpressionValue): boolean
   }
 }
 
+function assertVarAccess(acc: ExpressionTree|ExpressionLeaf, varCtxId: ExpressionTree|ExpressionLeaf, varCtxKey: ExpressionTree|ExpressionLeaf) {
+  if (acc === VAR_ACCESS_DOT_OP || acc === VAR_ACCESS_BRACKET_OP) {
+    // confirm variable belongs to VariableContext
+    if (varCtxId !== VAR_CTX_ID) {
+      throw new SyntaxError(
+        `all variables must belong to variable context ${VAR_CTX_ID}`, 
+        {cause: `${varCtxId}${VAR_ACCESS_DOT_OP}<member>`}
+      )
+    }
+
+    // evaluate literal string key like var["key"] same as var[key]
+    return (
+      typeof varCtxKey !== 'string'
+      ? (varCtxKey as ExpressionTree)[1] as string
+      : varCtxKey
+    )
+  }
+  else {
+    throw new SyntaxError(`cannot access ${varCtxId}${acc}${varCtxId} that doesn't belong to ${VAR_CTX_ID}`)
+  }
+}
+
+/**
+ * Assign b=value to a=var.member and return value.
+ */
+function evalAssignNode(a: ExpressionTree, b: ExpressionTree | ExpressionValue, varCtx: VariableContext) {
+  // evaluate left variable reference
+  const [acc, varCtxId, varCtxKey] = a
+  const _varCtxKey = assertVarAccess(acc, varCtxId, varCtxKey)
+
+  if (_varCtxKey === VAR_ANS_ID) {
+    throw new Error(
+      `expression cannot overwrite reserved variable ${VAR_CTX_ID}${VAR_ACCESS_DOT_OP}${VAR_ANS_ID}`
+    )
+  }
+
+  // evaluate right value
+  let _b = (Array.isArray(b) ? parseExpressionTree(b) : b) as ExpressionValue
+
+  // perform assignment
+  varCtx[_varCtxKey] = _b
+
+  // return right value as result
+  return _b
+}
+
 /**
  * Both parses and evaluates the expression abstract syntax tree from the given root node.
  */
-function parseExpressionTree(node: ExpressionTree, radixCtx: RadixType = RadixType.D): ExpressionInnerValue {
+function parseExpressionTree(node: ExpressionTree, radixCtx: RadixType = RadixType.D, varCtx?: VariableContext): ExpressionInnerValue {
   const op = node[0]
   const a = node[1]
   const b = node[2]
@@ -338,12 +385,22 @@ function parseExpressionTree(node: ExpressionTree, radixCtx: RadixType = RadixTy
     }
     else if (a === VectorType.CCoord) {
       // convert ['[]' a='cc' b=[',' <x> <y>]] to CartesianCoordinate
-      const [_x, _y] = (_b as ExpressionValueCollection).items
-      return new CartesianCoordinate(_x as number, _y as number)
+      try {
+        const [_x, _y] = (_b as ExpressionValueCollection).items
+        return new CartesianCoordinate(_x as number, _y as number)
+      }
+      catch (err) {
+        throw new SyntaxError(`failed to parse ${b}-->${_b} as ccoord x,y components`, {cause: err})
+      }
     }
     else {
       // convert ['[]' a='tc' b=[ <scalar-node>]] to Tetracoordinate
-      return new Tetracoordinate(_b as number|PowerScalar)
+      try {
+        return new Tetracoordinate(_b as number|PowerScalar)
+      }
+      catch (err) {
+        throw new SyntaxError(`failed to parse ${b}-->${_b} as tccord scalar value`, {cause: err})
+      }
     }
   }
   else if (op === EQ_STRICT_OP || op === NEQ_STRICT_OP && b !== undefined) {
@@ -356,6 +413,21 @@ function parseExpressionTree(node: ExpressionTree, radixCtx: RadixType = RadixTy
   }
   else if (op === GROUP_OP && b === undefined) {
     return parseExpressionTree(a as ExpressionTree, radixCtx)
+  }
+  else if (op === ASSIGN_OP && b !== undefined) {
+    // assignment var.<member> = <value> (or var[member] = <value>)
+    if (varCtx === undefined) {
+      throw new Error(`cannot evaluate assignment ${node} without variable context`)
+    }
+    return evalAssignNode(a as ExpressionTree, b as ExpressionTree|ExpressionValue, varCtx)
+  }
+  else if (op === VAR_ACCESS_DOT_OP || op === VAR_ACCESS_BRACKET_OP) {
+    // evaluate left variable reference
+    const varCtxKey = assertVarAccess(op, a, b)
+    if (varCtx === undefined) {
+      throw new Error(`cannot evaluate reference ${node} without variable context`)
+    }
+    return varCtx.values[varCtxKey]
   }
   else if (op !== undefined) {
     // operator expression

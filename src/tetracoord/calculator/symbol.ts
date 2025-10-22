@@ -74,6 +74,10 @@ export const EQ_STRICT_OP = '==='
 export const NEQ_STRICT_OP = '!=='
 export const EQ_LOOSE_OP = '=='
 export const NEQ_LOOSE_OP = '!='
+/**
+ * Assignment operator.
+ */
+export const ASSIGN_OP = '='
 
 export const COSPI6_CONST = 'cospi6'
 export const SINPI6_CONST = 'sinpi6'
