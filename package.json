@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "_test": "NODE_OPTIONS=\"--import=tsx\" mocha",
-    "test": "npm run _test -- test/**/*.ts",
-    "testjs": "mocha test/**/*.js",
+    "test": "npm run _test -- test/*.ts",
+    "testjs": "mocha test/*.js",
     "pretestjs": "npm run compile",
     "cli": "tsx src/cli/index.ts",
     "compile": "tsc --build tsconfig.json",
