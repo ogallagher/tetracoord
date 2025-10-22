@@ -52,11 +52,11 @@ export class VariableContext implements SerialVarCtx {
   }
 
   save(): SerialVarCtx {
-    const ctx = this as SerialVarCtx
+    const ctx = new VariableContext() as SerialVarCtx
 
-    ctx[VAR_ANS_ID] = serialize(ctx[VAR_ANS_ID])
+    ctx[VAR_ANS_ID] = serialize(this[VAR_ANS_ID])
 
-    for (let [key, val] of Object.entries(ctx.values)) {
+    for (let [key, val] of Object.entries(this.values)) {
       ctx.values[key] = serialize(val as SerialExprVal)
     }
 
