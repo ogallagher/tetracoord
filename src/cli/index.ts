@@ -274,9 +274,8 @@ async function main(opts: Opts) {
   }
 
   // evaluate
-  const res = evalExpression(expr)
+  const res = evalExpression(expr, cliCtx[VAR_CTX_ID])
   logger.info(`raw result = ${res}`)
-  cliCtx[VAR_CTX_ID][VAR_ANS_ID] = res
 
   // show result
   const resStr = formatValue(res, opts[OptKey.ScalarRadix], opts[OptKey.VectorFormat])

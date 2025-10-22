@@ -2,7 +2,7 @@ import { deserialize, serialize } from "../serializer";
 import type { SerialExprVal, SerialVarCtx } from "../serializer/const"
 import type { ExpressionValue } from "./const"
 import type { VarCtxId } from "./symbol"
-import { VAR_CTX_ID, VAR_ANS_ID } from "./symbol"
+import { VAR_CTX_ID, VAR_ANS_ID, VAR_ACCESS_DOT_OP } from "./symbol"
 
 /**
  * Corresponds to `var` expression variable that acts as a global namespace, similar to `window` in frontend JS.
@@ -13,6 +13,30 @@ export class VariableContext implements SerialVarCtx {
   [VAR_ANS_ID]: ExpressionValue
 
   values: {[key: string]: ExpressionValue} = {}
+
+  get(key: string) {
+    if (key === VAR_ANS_ID) {
+      return this[VAR_ANS_ID]
+    }
+    else {
+      return this.values[key]
+    }
+  }
+
+  /**
+   * Update a member of `this.values`.
+   * @throws {RangeError} Caller attempts to set `this.$ans`.
+   */
+  set(key: string, val: ExpressionValue) {
+    if (key === VAR_ANS_ID) {
+      throw new RangeError(
+        `expression cannot overwrite reserved variable ${VAR_CTX_ID}${VAR_ACCESS_DOT_OP}${VAR_ANS_ID}`
+      )
+    }
+    else {
+      this.values[key] = val
+    }
+  }
 
   /**
    * Add and overwrite values while retaining any that this context already has.

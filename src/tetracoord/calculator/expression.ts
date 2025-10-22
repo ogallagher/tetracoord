@@ -27,7 +27,7 @@ export function preparseExpression(str: string): string {
   const pattern = new RegExp(
     [
       // radix prefix
-      `${RADIX_PREFIX}([${RadixType.B}${RadixType.Q}${RadixType.D}])`,
+      `(?<!\\w)${RADIX_PREFIX}([${RadixType.B}${RadixType.Q}${RadixType.D}])(?=[\\d\\.])`,
       // irrational suffix
       `(\\d)${IRR_SUFFIX_I}`,
       `(\\d)\\.\\.\\.`
@@ -280,7 +280,7 @@ function assertVarAccess(acc: ExpressionTree|ExpressionLeaf, varCtxId: Expressio
     )
   }
   else {
-    throw new SyntaxError(`cannot access ${varCtxId}${acc}${varCtxId} that doesn't belong to ${VAR_CTX_ID}`)
+    throw new SyntaxError(`cannot access ${varCtxId} ${acc} ${varCtxKey} that doesn't belong to ${VAR_CTX_ID}`)
   }
 }
 
@@ -292,17 +292,11 @@ function evalAssignNode(a: ExpressionTree, b: ExpressionTree | ExpressionValue, 
   const [acc, varCtxId, varCtxKey] = a
   const _varCtxKey = assertVarAccess(acc, varCtxId, varCtxKey)
 
-  if (_varCtxKey === VAR_ANS_ID) {
-    throw new Error(
-      `expression cannot overwrite reserved variable ${VAR_CTX_ID}${VAR_ACCESS_DOT_OP}${VAR_ANS_ID}`
-    )
-  }
-
   // evaluate right value
-  let _b = (Array.isArray(b) ? parseExpressionTree(b) : b) as ExpressionValue
+  let _b = (Array.isArray(b) ? parseExpressionTree(b, undefined, varCtx) : b) as ExpressionValue
 
   // perform assignment
-  varCtx[_varCtxKey] = _b
+  varCtx.set(_varCtxKey, _b)
 
   // return right value as result
   return _b
@@ -326,7 +320,7 @@ function parseExpressionTree(node: ExpressionTree, radixCtx: RadixType = RadixTy
     return parseScalarNode(node, radixCtx)
   }
   else if (op === NEG_OP || op === POS_OP) {
-    const _a = parseExpressionTree(a as ExpressionTree, radixCtx)
+    const _a = parseExpressionTree(a as ExpressionTree, radixCtx, varCtx)
 
     if (b === undefined) {
       // unary
@@ -341,32 +335,32 @@ function parseExpressionTree(node: ExpressionTree, radixCtx: RadixType = RadixTy
     }
     else {
       // binary
-      const _b = parseExpressionTree(b as ExpressionTree, radixCtx)
+      const _b = parseExpressionTree(b as ExpressionTree, radixCtx, varCtx)
       return evalAddSub(op, _a as ExpressionValue, _b as ExpressionValue)
     }
   }
   else if (op === ABS_GROUP_OP && b === undefined) {
-    return evalAbs(parseExpressionTree(a as ExpressionTree, radixCtx) as ExpressionValue)
+    return evalAbs(parseExpressionTree(a as ExpressionTree, radixCtx, varCtx) as ExpressionValue)
   }
   else if (op === MUL_OP || op === DIV_OP) {
     return evalMulDiv(
       op,
-      parseExpressionTree(a as ExpressionTree, radixCtx) as ExpressionValue,
-      parseExpressionTree(b as ExpressionTree, radixCtx) as ExpressionValue
+      parseExpressionTree(a as ExpressionTree, radixCtx, varCtx) as ExpressionValue,
+      parseExpressionTree(b as ExpressionTree, radixCtx, varCtx) as ExpressionValue
     )
   }
   else if (op === EXP_OP) {
     return evalPow(
-      parseExpressionTree(a as ExpressionTree, radixCtx) as ExpressionValue,
-      parseExpressionTree(b as ExpressionTree, radixCtx) as ExpressionValue
+      parseExpressionTree(a as ExpressionTree, radixCtx, varCtx) as ExpressionValue,
+      parseExpressionTree(b as ExpressionTree, radixCtx, varCtx) as ExpressionValue
     )
   }
   else if (op === ITEM_DELIM_OP) {
     // return collection of values
-    return new ExpressionValueCollection(node.slice(1).map(i => parseExpressionTree(i as ExpressionTree, radixCtx) as ExpressionValue))
+    return new ExpressionValueCollection(node.slice(1).map(i => parseExpressionTree(i as ExpressionTree, radixCtx, varCtx) as ExpressionValue))
   }
   else if (op === VEC_ACCESS_OP && (a === VectorType.CCoord || a === VectorType.TCoord)) {
-    const _b = parseExpressionTree(b as ExpressionTree, a === VectorType.CCoord ? RadixType.D : RadixType.Q)
+    const _b = parseExpressionTree(b as ExpressionTree, a === VectorType.CCoord ? RadixType.D : RadixType.Q, varCtx)
 
     if (_b instanceof CartesianCoordinate || _b instanceof Tetracoordinate) {
       // vector type conversion
@@ -406,13 +400,13 @@ function parseExpressionTree(node: ExpressionTree, radixCtx: RadixType = RadixTy
   else if (op === EQ_STRICT_OP || op === NEQ_STRICT_OP && b !== undefined) {
     const eq = evalEq(
       EQ_STRICT_OP, 
-      parseExpressionTree(a as ExpressionTree, radixCtx) as ExpressionValue,
-      parseExpressionTree(b as ExpressionTree, radixCtx) as ExpressionValue
+      parseExpressionTree(a as ExpressionTree, radixCtx, varCtx) as ExpressionValue,
+      parseExpressionTree(b as ExpressionTree, radixCtx, varCtx) as ExpressionValue
     )
     return (op === EQ_STRICT_OP) ? eq : !eq
   }
   else if (op === GROUP_OP && b === undefined) {
-    return parseExpressionTree(a as ExpressionTree, radixCtx)
+    return parseExpressionTree(a as ExpressionTree, radixCtx, varCtx)
   }
   else if (op === ASSIGN_OP && b !== undefined) {
     // assignment var.<member> = <value> (or var[member] = <value>)
@@ -427,13 +421,14 @@ function parseExpressionTree(node: ExpressionTree, radixCtx: RadixType = RadixTy
     if (varCtx === undefined) {
       throw new Error(`cannot evaluate reference ${node} without variable context`)
     }
-    return varCtx.values[varCtxKey]
+
+    return varCtx.get(varCtxKey)
   }
   else if (op !== undefined) {
     // operator expression
     const isLeaf = (n: ExpressionLeaf|ExpressionTree) => !Array.isArray(n) || n[0] === undefined
 
-    const _a = isLeaf(a) ? a : parseExpressionTree(a as ExpressionTree, radixCtx)
+    const _a = isLeaf(a) ? a : parseExpressionTree(a as ExpressionTree, radixCtx, varCtx)
 
     if (b === undefined) {
       // unary operation
@@ -441,7 +436,7 @@ function parseExpressionTree(node: ExpressionTree, radixCtx: RadixType = RadixTy
     }
     else {
       // binary operation
-      const _b = isLeaf(b) ? b : parseExpressionTree(b as ExpressionTree, radixCtx)
+      const _b = isLeaf(b) ? b : parseExpressionTree(b as ExpressionTree, radixCtx, varCtx)
 
       throw new SyntaxError(`unsupported binary operation ${[op, _a, _b]}`)
     }
@@ -464,13 +459,20 @@ function parseExpressionTree(node: ExpressionTree, radixCtx: RadixType = RadixTy
   }
 }
 
-export function evalExpression(expr: string): ExpressionValue {
+/**
+ * Evaluates expression, reads and writes the given variable context, and returns the result.
+ */
+export function evalExpression(expr: string, varCtx?: VariableContext): ExpressionValue {
   logger.info(`parse raw expression=${expr}`)
 
   expr = preparseExpression(expr)
   logger.debug(`preparsed expression=${expr}`)
   
-  const res = parseExpressionTree(parse(expr)) as ExpressionValue
+  const res = parseExpressionTree(parse(expr), undefined, varCtx) as ExpressionValue
   logger.debug(`result=${res}`)
+  if (varCtx) {
+    varCtx[VAR_ANS_ID] = res
+  }
+
   return res
 }
