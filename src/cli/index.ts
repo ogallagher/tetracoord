@@ -151,10 +151,10 @@ const optParser = (
   })
   .option(OptKey.File, {
     alias: 'f',
-    default: path.resolve(FILE_PATH_DEFAULT),
+    default: undefined,
     description: (
       `Path to config/data file where persistent state like expression result variable `
-      + `${VAR_CTX_ID}${VAR_ACCESS_DOT_OP}${VAR_ANS_ID} are saved and loaded.`
+      + `${VAR_CTX_ID}${VAR_ACCESS_DOT_OP}${VAR_ANS_ID} are saved and loaded. Default=${FILE_PATH_DEFAULT}.`
     )
   })
   .option(OptKey.ReloadFile, {
@@ -192,6 +192,11 @@ function getOpts(argv: string[]|string): Opts|undefined {
   const filePath = opts[OptKey.File]
   if (filePath !== undefined && filePath !== optsPrev[OptKey.File]) {
     logger.debug(`file changed to path=${filePath}; enable reload`)
+    opts[OptKey.ReloadFile] = true
+  }
+  else if (filePath === undefined && optsPrev[OptKey.File] === undefined) {
+    opts[OptKey.File] = FILE_PATH_DEFAULT
+    logger.debug(`file changed to default path=${FILE_PATH_DEFAULT}; enable reload`)
     opts[OptKey.ReloadFile] = true
   }
 
@@ -249,19 +254,14 @@ async function main(opts: Opts) {
     return opts
   }
 
-  const expr = opts[OptKey.Expr]
-  if (expr === undefined || expr.trim().length === 0) {
-    await consoleLog('no expression provided to evaluate')
-    return opts
-  }
-
   // load context
   if (opts[OptKey.ReloadFile]) {
     const filePath = opts[OptKey.File]
     logger.info(`load context from path=${filePath}`)
+    await consoleLog(`load file ${filePath}`)
 
     try {
-      const fileCtx = await loadFile(filePath) as SerialCliContext
+      const fileCtx = loadFile(filePath) as SerialCliContext
       cliCtx[VAR_CTX_ID].load(fileCtx[VAR_CTX_ID])
     }
     catch (err) {
@@ -271,6 +271,12 @@ async function main(opts: Opts) {
 
     // disable reload content until requested again
     opts[OptKey.ReloadFile] = false
+  }
+
+  const expr = opts[OptKey.Expr]
+  if (expr === undefined || expr.trim().length === 0) {
+    await consoleLog('no expression provided to evaluate')
+    return opts
   }
 
   // evaluate
