@@ -4,7 +4,7 @@
 
 // enable subset of default subscript syntax
 import "subscript/feature/number.js"
-// import "subscript/feature/string.js"
+import "subscript/feature/string.js"
 // import "subscript/feature/call.js"
 import "subscript/feature/access.js"
 import "subscript/feature/group.js"

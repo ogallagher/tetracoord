@@ -49,6 +49,11 @@ describe('variable context', () => {
     )
 
     assert.strictEqual((varCtx[VAR_ANS_ID] as PowerScalar).toNumber(), (res as PowerScalar).toNumber(), 'var.$ans vs ans')
+
+    evalExpression('var[six0d] = 6', varCtx)
+    assert.strictEqual(varCtx.get('six0d'), 6, 'var[six0d]')
+    evalExpression('var["seven0d is a decimal raw scalar"] = 7.0', varCtx)
+    assert.strictEqual(varCtx.get('seven0d is a decimal raw scalar'), 7, 'var["seven0d is a decimal raw scalar"]')
   })
 
   it(`references var members including ${VAR_ANS_ID}`, () => {

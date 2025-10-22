@@ -16,7 +16,6 @@ describe('serialize', () => {
     for (let [id, val, err] of [
       ['number', 5.6],
       ['boolean', true],
-      ['null', null, new Error('not a valid expression value')],
       ['string', '', new Error('not a valid expression value')],
       [`${ScalarType.PowerScalar}.${RadixType.D}`, parsePowerScalar(-7.5, RadixType.D)],
       [`${ScalarType.PowerScalar}.${RadixType.B}`, parsePowerScalar('11', RadixType.B)],

@@ -13,6 +13,7 @@ import type { ExpressionPrimitiveValue, ExpressionValue } from "../calculator/co
  */
 export function serialize(val: SerialExprVal) {
   if (val === undefined || val === null) {
+    // allow null in serialized file to show attributes without values like var.$ans
     return null
   }
   if (typeof val === 'number' || typeof val === 'boolean') {
@@ -47,6 +48,7 @@ export function serialize(val: SerialExprVal) {
 
 export function deserialize(obj: Serializable|ExpressionPrimitiveValue): ExpressionValue {
   if (obj === null || obj === undefined) {
+    // don't load var context members that have no value
     return undefined
   }
   if (typeof obj === 'number' || typeof obj === 'boolean') {
