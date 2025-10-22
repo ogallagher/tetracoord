@@ -2,7 +2,7 @@ import type { Pt } from "pts-math"
 import { VAR_ANS_ID, VarCtxId } from "../calculator/symbol"
 import { ByteLevelOrder, PowerScalar, RadixType, RawScalar, ScalarType, ScalarTypePower, Sign } from "../scalar"
 import type { VectorTypeCC, VectorTypeTC } from "../vector"
-import type { ExpressionPrimitiveValue } from "../calculator/const"
+import type { ExpressionPrimitiveValue, ExpressionValue } from "../calculator/const"
 
 export interface Serializable {
   /**
@@ -73,11 +73,11 @@ export interface SerialVarCtx extends Serializable {
   /**
    * Always stores latest expression result/answer.
    */
-  [VAR_ANS_ID]: SerialExprVal
+  [VAR_ANS_ID]: ExpressionValue | SerialExprVal
   /**
    * Other attributes added at runtime.
    */
   values: {
-    [key: string]: SerialExprVal | VarCtxId
+    [key: string]: ExpressionValue | SerialExprVal | VarCtxId
   }
 }

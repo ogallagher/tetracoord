@@ -1,4 +1,6 @@
+import { deserialize, serialize } from "../serializer";
 import type { SerialExprVal, SerialVarCtx } from "../serializer/const"
+import type { ExpressionValue } from "./const"
 import type { VarCtxId } from "./symbol"
 import { VAR_CTX_ID, VAR_ANS_ID } from "./symbol"
 
@@ -8,15 +10,32 @@ import { VAR_CTX_ID, VAR_ANS_ID } from "./symbol"
 export class VariableContext implements SerialVarCtx {
   type: VarCtxId = VAR_CTX_ID;
 
-  [VAR_ANS_ID]: SerialExprVal
+  [VAR_ANS_ID]: ExpressionValue
 
-  values = {}
+  values: {[key: string]: ExpressionValue} = {}
 
-  stringify(formatIndent?: number) {
-    return JSON.stringify(this, undefined, formatIndent)
+  /**
+   * Add and overwrite values while retaining any that this context already has.
+   * 
+   * @param varCtx Other variable context.
+   */
+  load(varCtx: SerialVarCtx) {
+    this[VAR_ANS_ID] = deserialize(varCtx[VAR_ANS_ID])
+
+    for (let [key, val] of Object.entries(varCtx.values)) {
+      this.values[key] = deserialize(val as SerialExprVal)
+    }
   }
 
-  parse() {
+  save(): SerialVarCtx {
+    const ctx = this as SerialVarCtx
 
+    ctx[VAR_ANS_ID] = serialize(ctx[VAR_ANS_ID])
+
+    for (let [key, val] of Object.entries(ctx.values)) {
+      ctx.values[key] = serialize(val as SerialExprVal)
+    }
+
+    return ctx
   }
 }

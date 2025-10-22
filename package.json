@@ -8,14 +8,14 @@
     "test": "npm run _test -- test/**/*.ts",
     "testjs": "mocha test/**/*.js",
     "pretestjs": "npm run compile",
-    "cli": "tsx src/cli_driver.ts",
+    "cli": "tsx src/cli/index.ts",
     "compile": "tsc --build tsconfig.json",
     "_pack": "npm pack --pack-destination dist",
     "prepublish": "npm run compile && npm run _pack",
     "clean": "rm index.js; rm index.d.ts; rm index.js.map; rm src/**/*.js; rm src/**/*.d.ts; rm src/**/*.js.map; rm test/**/*.js; rm test/**/*.d.ts; rm test/**/*.js.map;"
   },
   "bin": {
-    "tcoord": "src/cli_driver.js"
+    "tcoord": "src/cli/index.js"
   },
   "repository": {
     "type": "git",

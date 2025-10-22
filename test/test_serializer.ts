@@ -5,7 +5,7 @@ import { RadixType } from "../src/tetracoord/scalar/radix"
 import { parsePowerScalar, PowerScalar } from "../src/tetracoord/scalar/powerscalar"
 import { IRR_SUFFIX_I } from "../src/tetracoord/calculator/symbol"
 import type { ExpressionPrimitiveValue, ExpressionValue } from "../src/tetracoord/calculator/const"
-import type { SerialCartesianCoord, SerialExprVal, SerialPowerScalar, SerialTetracoord } from "../src/tetracoord/serializer/const"
+import type { SerialCartesianCoord, SerialPowerScalar, SerialTetracoord } from "../src/tetracoord/serializer/const"
 import { deserialize, serialize } from "../src/tetracoord/serializer"
 import { CartesianCoordinate, Tetracoordinate, VectorType } from "../src/tetracoord"
 

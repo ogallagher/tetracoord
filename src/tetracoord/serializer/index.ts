@@ -12,6 +12,9 @@ import type { ExpressionPrimitiveValue, ExpressionValue } from "../calculator/co
  * @returns An object whose properties can be passed directly to {@linkcode JSON.stringify}.
  */
 export function serialize(val: SerialExprVal) {
+  if (val === undefined || val === null) {
+    return null
+  }
   if (typeof val === 'number' || typeof val === 'boolean') {
     return val
   }
@@ -42,7 +45,10 @@ export function serialize(val: SerialExprVal) {
   }
 }
 
-export function deserialize(obj: Serializable | ExpressionPrimitiveValue): ExpressionValue {
+export function deserialize(obj: Serializable|ExpressionPrimitiveValue): ExpressionValue {
+  if (obj === null || obj === undefined) {
+    return undefined
+  }
   if (typeof obj === 'number' || typeof obj === 'boolean') {
     return obj
   }
