@@ -1,6 +1,6 @@
 import { deserialize, serialize } from "../serializer";
 import type { SerialExprVal, SerialVarCtx } from "../serializer/const"
-import type { ExpressionValue } from "./const"
+import type { ExpressionValue } from "./expression/const";
 import type { VarCtxId } from "./symbol"
 import { VAR_CTX_ID, VAR_ANS_ID, VAR_ACCESS_DOT_OP } from "./symbol"
 

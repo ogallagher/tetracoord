@@ -12,7 +12,7 @@
     "compile": "tsc --build tsconfig.json",
     "_pack": "npm pack --pack-destination dist",
     "prepublish": "npm run compile && npm run _pack",
-    "clean": "rm index.js; rm index.d.ts; rm index.js.map; rm src/**/*.js; rm src/**/*.d.ts; rm src/**/*.js.map; rm test/**/*.js; rm test/**/*.d.ts; rm test/**/*.js.map;"
+    "clean": "rm index.js; rm index.d.ts; rm index.js.map; rm src/**/*.js; rm src/**/*.d.ts; rm src/**/*.js.map; rm test/**/*.js; rm test/**/*.d.ts; rm test/**/*.js.map; rm tsconfig.tsbuildinfo"
   },
   "bin": {
     "tcoord": "src/cli/index.js"

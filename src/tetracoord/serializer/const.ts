@@ -2,7 +2,7 @@ import type { Pt } from "pts-math"
 import { VAR_ANS_ID, VarCtxId } from "../calculator/symbol"
 import { ByteLevelOrder, PowerScalar, RadixType, RawScalar, ScalarTypePower, Sign } from "../scalar"
 import type { VectorTypeCC, VectorTypeTC } from "../vector"
-import type { ExpressionPrimitiveValue, ExpressionValue } from "../calculator/const"
+import type { ExpressionPrimitiveValue, ExpressionValue } from "../calculator/expression/const"
 
 export interface Serializable {
   /**

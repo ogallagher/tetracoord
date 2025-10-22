@@ -5,7 +5,7 @@ import { Tetracoordinate } from "../vector/tetracoordinate"
 import { VectorType } from "../vector/const"
 import type { SerialCartesianCoord, SerialExprVal, Serializable, SerialPowerScalar, SerialTetracoord } from "./const"
 import { CartesianCoordinate } from "../vector"
-import type { ExpressionPrimitiveValue, ExpressionValue } from "../calculator/const"
+import type { ExpressionPrimitiveValue, ExpressionValue } from "../calculator/expression/const"
 
 /**
  * @param val 

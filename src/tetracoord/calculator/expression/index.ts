@@ -1,14 +1,11 @@
-import { parse } from "./parser"
-import CartesianCoordinate from "../vector/cartesian"
-import { parsePowerScalar, PowerScalar } from "../scalar/powerscalar"
-import { RadixType } from "../scalar/radix"
-import { VectorType } from "../vector/const"
-import Tetracoordinate from "../vector/tetracoordinate"
-import { ABS_GROUP_OP, ASSIGN_OP, DIV_OP, EQ_LOOSE_OP, EQ_STRICT_OP, EXP_OP, GROUP_OP, IRR_SUFFIX_DOTS, IRR_SUFFIX_I, IRR_SUFFIX_OP, ITEM_DELIM_OP, MUL_OP, NEG_OP, NEQ_STRICT_OP, POS_OP, RADIX_PREFIX, RADIX_PREFIX_OP, VAR_ACCESS_BRACKET_OP, VAR_ACCESS_DOT_OP, VAR_ANS_ID, VAR_CTX_ID, VEC_ACCESS_OP } from "./symbol"
 import pino from "pino"
-import type { ExpressionValue, ExpressionTree, ExpressionInnerValue, ExpressionLeaf } from "./const"
-import { ExpressionValueCollection } from "./const"
-import { VariableContext } from "./variablecontext"
+import { parse } from "subscript"
+import { RadixType, PowerScalar, parsePowerScalar } from "../../scalar"
+import { Tetracoordinate, CartesianCoordinate, VectorType } from "../../vector"
+import { type ExpressionValue, type ExpressionTree, type ExpressionLeaf, type ExpressionInnerValue, ExpressionValueCollection } from "./const"
+import { RADIX_PREFIX, IRR_SUFFIX_I, IRR_SUFFIX_DOTS, IRR_SUFFIX_OP, RADIX_PREFIX_OP, NEG_OP, MUL_OP, EQ_LOOSE_OP, VAR_ACCESS_DOT_OP, VAR_ACCESS_BRACKET_OP, VAR_CTX_ID, POS_OP, ABS_GROUP_OP, DIV_OP, EXP_OP, ITEM_DELIM_OP, VEC_ACCESS_OP, EQ_STRICT_OP, NEQ_STRICT_OP, GROUP_OP, ASSIGN_OP, VAR_ANS_ID } from "../symbol"
+import { VariableContext } from "../variablecontext"
+import type { ExpressionCalculator } from "./expressioncalculator"
 
 export const logger = pino({
   name: 'calculator.expression',
@@ -17,11 +14,11 @@ export const logger = pino({
 
 /**
  * Translate true tetracoord calculator expression to intermediate syntax for parser compatibility.
- * 
+ *
  * This step would not be necessary with more exact parser customization.
- * 
- * @param str 
- * @returns 
+ *
+ * @param str
+ * @returns
  */
 export function preparseExpression(str: string): string {
   const pattern = new RegExp(
@@ -31,11 +28,11 @@ export function preparseExpression(str: string): string {
       // irrational suffix
       `(\\d)${IRR_SUFFIX_I}`,
       `(\\d)\\.\\.\\.`
-    ].map(p => `(${p})`).join('|'), 
+    ].map(p => `(${p})`).join('|'),
     'g'
   )
 
-  let matcher: RegExpExecArray|null
+  let matcher: RegExpExecArray | null
   let match: string[]
   let matchStr: string
   let strParts = []
@@ -105,7 +102,12 @@ function parseScalarNode(node: ExpressionTree, radixType: RadixType): PowerScala
   }
 }
 
-function evalNegate(a: ExpressionValue): ExpressionValue {
+/**
+ * Return the negative of a value.
+ * 
+ * There's not much reason for this to implement the `ExpressionCalculator` interface; I mostly do so as an easy example.
+ */
+const evalNegate: ExpressionCalculator = (a: ExpressionValue): ExpressionValue => {
   if (typeof a === 'number') {
     return -a
   }
@@ -120,7 +122,7 @@ function evalNegate(a: ExpressionValue): ExpressionValue {
   }
 }
 
-function evalAbs(a: ExpressionValue): ExpressionValue {
+const evalAbs: ExpressionCalculator = (a: ExpressionValue): ExpressionValue => {
   if (typeof a === 'number') {
     return Math.abs(a)
   }
@@ -135,7 +137,7 @@ function evalAbs(a: ExpressionValue): ExpressionValue {
   }
 }
 
-function evalAddSub(op: '-'|'+', a: ExpressionValue, b: ExpressionValue): ExpressionValue {
+function evalAddSub(op: '-' | '+', a: ExpressionValue, b: ExpressionValue): ExpressionValue {
   if (typeof a === 'number' && typeof b === 'number') {
     // simple scalar
     return op === NEG_OP ? a - b : a + b
@@ -145,24 +147,24 @@ function evalAddSub(op: '-'|'+', a: ExpressionValue, b: ExpressionValue): Expres
       // power scalar
       return (
         op === NEG_OP
-        ? PowerScalar.subtract(a as number|PowerScalar, b as number|PowerScalar)
-        : PowerScalar.add(a as number|PowerScalar, b as number|PowerScalar)
+          ? PowerScalar.subtract(a as number | PowerScalar, b as number | PowerScalar)
+          : PowerScalar.add(a as number | PowerScalar, b as number | PowerScalar)
       )
     }
     else if (a instanceof Tetracoordinate && b instanceof Tetracoordinate) {
       // tcoord vector
       return (
         op === NEG_OP
-        ? a.clone().subtractFromCartesian(b)
-        : a.clone().addFromCartesian(b)
+          ? a.clone().subtractFromCartesian(b)
+          : a.clone().addFromCartesian(b)
       )
     }
     else if (a instanceof CartesianCoordinate && b instanceof CartesianCoordinate) {
       // ccoord vector
       return (
         op === NEG_OP
-        ? CartesianCoordinate.subtract(a, b)
-        : CartesianCoordinate.add(a, b)
+          ? CartesianCoordinate.subtract(a, b)
+          : CartesianCoordinate.add(a, b)
       )
     }
     else {
@@ -172,27 +174,27 @@ function evalAddSub(op: '-'|'+', a: ExpressionValue, b: ExpressionValue): Expres
   }
 }
 
-function evalMulDiv(op: '*'|'/', a: ExpressionValue, b: ExpressionValue): ExpressionValue {
+function evalMulDiv(op: '*' | '/', a: ExpressionValue, b: ExpressionValue): ExpressionValue {
   if (typeof a === 'number' && typeof b === 'number') {
     // simple scalar
     return op === MUL_OP ? a * b : a / b
   }
   else {
-    let {semiscalar, a: _a, b: _b} = parseSemiscalarOperands(a, b, op === '*')
+    let { semiscalar, a: _a, b: _b } = parseSemiscalarOperands(a, b, op === '*')
 
     if (semiscalar) {
       if (_a instanceof Tetracoordinate) {
         return (
           op === MUL_OP
-          ? _a.clone().multiplyFromCartesian(_b as number|PowerScalar)
-          : _a.clone().divideFromCartesian(_b as number|PowerScalar)
+            ? _a.clone().multiplyFromCartesian(_b as number | PowerScalar)
+            : _a.clone().divideFromCartesian(_b as number | PowerScalar)
         )
       }
       else {
         return (
           op === MUL_OP
-          ? CartesianCoordinate.multiply(_a as CartesianCoordinate, _b as number|PowerScalar)
-          : CartesianCoordinate.divide(_a as CartesianCoordinate, _b as number|PowerScalar)
+            ? CartesianCoordinate.multiply(_a as CartesianCoordinate, _b as number | PowerScalar)
+            : CartesianCoordinate.divide(_a as CartesianCoordinate, _b as number | PowerScalar)
         )
       }
     }
@@ -200,8 +202,8 @@ function evalMulDiv(op: '*'|'/', a: ExpressionValue, b: ExpressionValue): Expres
       // power scalar
       return (
         op === MUL_OP
-        ? PowerScalar.multiply(_a as number|PowerScalar, _b as number|PowerScalar)
-        : PowerScalar.divide(_a as number|PowerScalar, _b as number|PowerScalar)
+          ? PowerScalar.multiply(_a as number | PowerScalar, _b as number | PowerScalar)
+          : PowerScalar.divide(_a as number | PowerScalar, _b as number | PowerScalar)
       )
     }
     else {
@@ -217,23 +219,23 @@ function evalPow(a: ExpressionValue, b: ExpressionValue): ExpressionValue {
     return a ** b
   }
   else {
-    let {semiscalar, a: _a, b: _b} = parseSemiscalarOperands(a, b, false)
+    let { semiscalar, a: _a, b: _b } = parseSemiscalarOperands(a, b, false)
 
     if (semiscalar) {
       if (_a instanceof Tetracoordinate) {
-        return _a.clone().powFromCartesian(_b as number|PowerScalar)
+        return _a.clone().powFromCartesian(_b as number | PowerScalar)
       }
       else {
-        return CartesianCoordinate.pow(_a as CartesianCoordinate, _b as number|PowerScalar)
+        return CartesianCoordinate.pow(_a as CartesianCoordinate, _b as number | PowerScalar)
       }
     }
     else if (_a instanceof PowerScalar || _b instanceof PowerScalar) {
-      return PowerScalar.pow(_a as number|PowerScalar, _b as number|PowerScalar)
+      return PowerScalar.pow(_a as number | PowerScalar, _b as number | PowerScalar)
     }
   }
 }
 
-function evalEq(op: '==='|'==', a: ExpressionValue, b: ExpressionValue): boolean {
+function evalEq(op: '===' | '==', a: ExpressionValue, b: ExpressionValue): boolean {
   if (op === EQ_LOOSE_OP) {
     throw new SyntaxError(`loose equality ${op} for implicit type conversion is not supported`)
   }
@@ -262,21 +264,21 @@ function evalEq(op: '==='|'==', a: ExpressionValue, b: ExpressionValue): boolean
   }
 }
 
-function assertVarAccess(acc: ExpressionTree|ExpressionLeaf, varCtxId: ExpressionTree|ExpressionLeaf, varCtxKey: ExpressionTree|ExpressionLeaf) {
+function assertVarAccess(acc: ExpressionTree | ExpressionLeaf, varCtxId: ExpressionTree | ExpressionLeaf, varCtxKey: ExpressionTree | ExpressionLeaf) {
   if (acc === VAR_ACCESS_DOT_OP || acc === VAR_ACCESS_BRACKET_OP) {
     // confirm variable belongs to VariableContext
     if (varCtxId !== VAR_CTX_ID) {
       throw new SyntaxError(
-        `all variables must belong to variable context ${VAR_CTX_ID}`, 
-        {cause: `${varCtxId}${VAR_ACCESS_DOT_OP}<member>`}
+        `all variables must belong to variable context ${VAR_CTX_ID}`,
+        { cause: `${varCtxId}${VAR_ACCESS_DOT_OP}<member>` }
       )
     }
 
     // evaluate literal string key like var["key"] same as var[key]
     return (
       typeof varCtxKey !== 'string'
-      ? (varCtxKey as ExpressionTree)[1] as string
-      : varCtxKey
+        ? (varCtxKey as ExpressionTree)[1] as string
+        : varCtxKey
     )
   }
   else {
@@ -384,22 +386,22 @@ function parseExpressionTree(node: ExpressionTree, radixCtx: RadixType = RadixTy
         return new CartesianCoordinate(_x as number, _y as number)
       }
       catch (err) {
-        throw new SyntaxError(`failed to parse ${b}-->${_b} as ccoord x,y components`, {cause: err})
+        throw new SyntaxError(`failed to parse ${b}-->${_b} as ccoord x,y components`, { cause: err })
       }
     }
     else {
       // convert ['[]' a='tc' b=[ <scalar-node>]] to Tetracoordinate
       try {
-        return new Tetracoordinate(_b as number|PowerScalar)
+        return new Tetracoordinate(_b as number | PowerScalar)
       }
       catch (err) {
-        throw new SyntaxError(`failed to parse ${b}-->${_b} as tccord scalar value`, {cause: err})
+        throw new SyntaxError(`failed to parse ${b}-->${_b} as tccord scalar value`, { cause: err })
       }
     }
   }
   else if (op === EQ_STRICT_OP || op === NEQ_STRICT_OP && b !== undefined) {
     const eq = evalEq(
-      EQ_STRICT_OP, 
+      EQ_STRICT_OP,
       parseExpressionTree(a as ExpressionTree, radixCtx, varCtx) as ExpressionValue,
       parseExpressionTree(b as ExpressionTree, radixCtx, varCtx) as ExpressionValue
     )
@@ -413,7 +415,7 @@ function parseExpressionTree(node: ExpressionTree, radixCtx: RadixType = RadixTy
     if (varCtx === undefined) {
       throw new Error(`cannot evaluate assignment ${node} without variable context`)
     }
-    return evalAssignNode(a as ExpressionTree, b as ExpressionTree|ExpressionValue, varCtx)
+    return evalAssignNode(a as ExpressionTree, b as ExpressionTree | ExpressionValue, varCtx)
   }
   else if (op === VAR_ACCESS_DOT_OP || op === VAR_ACCESS_BRACKET_OP) {
     // evaluate left variable reference
@@ -426,7 +428,7 @@ function parseExpressionTree(node: ExpressionTree, radixCtx: RadixType = RadixTy
   }
   else if (op !== undefined) {
     // operator expression
-    const isLeaf = (n: ExpressionLeaf|ExpressionTree) => !Array.isArray(n) || n[0] === undefined
+    const isLeaf = (n: ExpressionLeaf | ExpressionTree) => !Array.isArray(n) || n[0] === undefined
 
     const _a = isLeaf(a) ? a : parseExpressionTree(a as ExpressionTree, radixCtx, varCtx)
 
@@ -462,12 +464,13 @@ function parseExpressionTree(node: ExpressionTree, radixCtx: RadixType = RadixTy
 /**
  * Evaluates expression, reads and writes the given variable context, and returns the result.
  */
+
 export function evalExpression(expr: string, varCtx?: VariableContext): ExpressionValue {
   logger.info(`parse raw expression=${expr}`)
 
   expr = preparseExpression(expr)
   logger.debug(`preparsed expression=${expr}`)
-  
+
   const res = parseExpressionTree(parse(expr), undefined, varCtx) as ExpressionValue
   logger.debug(`result=${res}`)
   if (varCtx) {
