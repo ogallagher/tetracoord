@@ -3,12 +3,15 @@ import { ScalarType } from "../scalar/const"
 import type { PowerScalarConstructorIn } from "../scalar/powerscalar"
 import { Tetracoordinate } from "../vector/tetracoordinate"
 import { VectorType } from "../vector/const"
-import type { SerialCartesianCoord, SerialExprVal, Serializable, SerialPowerScalar, SerialTetracoord } from "./const"
+import type { SerialCartesianCoord, SerialExprCalc, SerialExprVal, Serializable, SerialPowerScalar, SerialTetracoord } from "./const"
 import { CartesianCoordinate } from "../vector"
 import type { ExpressionPrimitiveValue, ExpressionValue } from "../calculator/expression/const"
+import { EXPR_CALC_TYPE, ExpressionCalculator } from "../calculator/expression/expressioncalculator"
+import path from "node:path"
+import { pathToFileURL } from "node:url"
 
 /**
- * @param val 
+ * @param val Expression value instance that can be serialized.
  * @returns An object whose properties can be passed directly to {@linkcode JSON.stringify}.
  */
 export function serialize(val: SerialExprVal) {
@@ -41,12 +44,15 @@ export function serialize(val: SerialExprVal) {
       cc.y = serialize(cc.y) as SerialPowerScalar
       return cc
 
+    case EXPR_CALC_TYPE:
+      return (val as ExpressionCalculator).save()
+
     default:
       throw new Error(`failed to serialize ${val}=${JSON.stringify(val)}`)
   }
 }
 
-export function deserialize(obj: Serializable|ExpressionPrimitiveValue): ExpressionValue {
+export async function deserialize(obj: Serializable|ExpressionPrimitiveValue): Promise<ExpressionValue> {
   if (obj === null || obj === undefined) {
     // don't load var context members that have no value
     return undefined
@@ -65,14 +71,33 @@ export function deserialize(obj: Serializable|ExpressionPrimitiveValue): Express
 
     case VectorType.TCoord:
       const tc = obj as SerialTetracoord
-      tc.value = deserialize(tc.value) as PowerScalar
+      tc.value = await deserialize(tc.value) as PowerScalar
       return new Tetracoordinate(tc as Tetracoordinate)
       
     case VectorType.CCoord:
       const cc = obj as SerialCartesianCoord
       return new CartesianCoordinate(
-        deserialize(cc.x) as PowerScalar, 
-        deserialize(cc.y) as PowerScalar
+        await deserialize(cc.x) as PowerScalar, 
+        await deserialize(cc.y) as PowerScalar
+      )
+    
+    case EXPR_CALC_TYPE:
+      const ec = obj as SerialExprCalc
+      // convert file path to import path by making absolute
+      const importUrl = pathToFileURL(path.resolve(ec.filePath))
+      return await (
+        import(importUrl.toString())
+        .then(
+          exprCalcModule => {
+            if (!exprCalcModule?.default) {
+              throw new Error(`import from expression calculator ${importUrl} returned ${exprCalcModule}`)
+            }
+            return new exprCalcModule.default(ec.filePath) as ExpressionCalculator
+          },
+          err => {
+            throw new Error(`import from expression calculator ${importUrl} failed`, {cause: err})
+          }
+        )
       )
 
     default:

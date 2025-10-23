@@ -3,9 +3,13 @@ import { parse } from "subscript"
 import { RadixType, PowerScalar, parsePowerScalar } from "../../scalar"
 import { Tetracoordinate, CartesianCoordinate, VectorType } from "../../vector"
 import { type ExpressionValue, type ExpressionTree, type ExpressionLeaf, type ExpressionInnerValue, ExpressionValueCollection } from "./const"
-import { RADIX_PREFIX, IRR_SUFFIX_I, IRR_SUFFIX_DOTS, IRR_SUFFIX_OP, RADIX_PREFIX_OP, NEG_OP, MUL_OP, EQ_LOOSE_OP, VAR_ACCESS_DOT_OP, VAR_ACCESS_BRACKET_OP, VAR_CTX_ID, POS_OP, ABS_GROUP_OP, DIV_OP, EXP_OP, ITEM_DELIM_OP, VEC_ACCESS_OP, EQ_STRICT_OP, NEQ_STRICT_OP, GROUP_OP, ASSIGN_OP, VAR_ANS_ID } from "../symbol"
+import { RADIX_PREFIX, IRR_SUFFIX_I, IRR_SUFFIX_DOTS, IRR_SUFFIX_OP, RADIX_PREFIX_OP, NEG_OP, MUL_OP, EQ_LOOSE_OP, VAR_ACCESS_DOT_OP, VAR_ACCESS_BRACKET_OP, VAR_CTX_ID, POS_OP, ABS_GROUP_OP, DIV_OP, EXP_OP, ITEM_DELIM_OP, VEC_ACCESS_OP, EQ_STRICT_OP, NEQ_STRICT_OP, GROUP_OP, ASSIGN_OP, VAR_ANS_ID, EXPR_CALC_ACCESS_OP } from "../symbol"
 import { VariableContext } from "../variablecontext"
-import type { ExpressionCalculator } from "./expressioncalculator"
+import { EXPR_CALC_TYPE, ExpressionCalculator } from "./expressioncalculator"
+import { deserialize, SerialExprCalc } from "../../serializer"
+
+export * from "./const"
+export * from "./expressioncalculator"
 
 export const logger = pino({
   name: 'calculator.expression',
@@ -107,7 +111,7 @@ function parseScalarNode(node: ExpressionTree, radixType: RadixType): PowerScala
  * 
  * There's not much reason for this to implement the `ExpressionCalculator` interface; I mostly do so as an easy example.
  */
-const evalNegate: ExpressionCalculator = (a: ExpressionValue): ExpressionValue => {
+function evalNegate(a: ExpressionValue): ExpressionValue {
   if (typeof a === 'number') {
     return -a
   }
@@ -122,7 +126,7 @@ const evalNegate: ExpressionCalculator = (a: ExpressionValue): ExpressionValue =
   }
 }
 
-const evalAbs: ExpressionCalculator = (a: ExpressionValue): ExpressionValue => {
+function evalAbs(a: ExpressionValue): ExpressionValue {
   if (typeof a === 'number') {
     return Math.abs(a)
   }
@@ -289,13 +293,13 @@ function assertVarAccess(acc: ExpressionTree | ExpressionLeaf, varCtxId: Express
 /**
  * Assign b=value to a=var.member and return value.
  */
-function evalAssignNode(a: ExpressionTree, b: ExpressionTree | ExpressionValue, varCtx: VariableContext) {
+async function evalAssignNode(a: ExpressionTree, b: ExpressionTree | ExpressionValue, varCtx: VariableContext) {
   // evaluate left variable reference
   const [acc, varCtxId, varCtxKey] = a
   const _varCtxKey = assertVarAccess(acc, varCtxId, varCtxKey)
 
   // evaluate right value
-  let _b = (Array.isArray(b) ? parseExpressionTree(b, undefined, varCtx) : b) as ExpressionValue
+  let _b = (Array.isArray(b) ? await parseExpressionTree(b, undefined, varCtx) : b) as ExpressionValue
 
   // perform assignment
   varCtx.set(_varCtxKey, _b)
@@ -304,10 +308,19 @@ function evalAssignNode(a: ExpressionTree, b: ExpressionTree | ExpressionValue, 
   return _b
 }
 
+async function loadExprCalc(filePath: string): Promise<ExpressionCalculator> {
+  return await deserialize(
+    {
+      type: EXPR_CALC_TYPE,
+      filePath: filePath
+    } as SerialExprCalc
+  ) as ExpressionCalculator
+}
+
 /**
  * Both parses and evaluates the expression abstract syntax tree from the given root node.
  */
-function parseExpressionTree(node: ExpressionTree, radixCtx: RadixType = RadixType.D, varCtx?: VariableContext): ExpressionInnerValue {
+async function parseExpressionTree(node: ExpressionTree, radixCtx: RadixType = RadixType.D, varCtx?: VariableContext): Promise<ExpressionInnerValue> {
   const op = node[0]
   const a = node[1]
   const b = node[2]
@@ -322,7 +335,7 @@ function parseExpressionTree(node: ExpressionTree, radixCtx: RadixType = RadixTy
     return parseScalarNode(node, radixCtx)
   }
   else if (op === NEG_OP || op === POS_OP) {
-    const _a = parseExpressionTree(a as ExpressionTree, radixCtx, varCtx)
+    const _a = await parseExpressionTree(a as ExpressionTree, radixCtx, varCtx)
 
     if (b === undefined) {
       // unary
@@ -337,32 +350,34 @@ function parseExpressionTree(node: ExpressionTree, radixCtx: RadixType = RadixTy
     }
     else {
       // binary
-      const _b = parseExpressionTree(b as ExpressionTree, radixCtx, varCtx)
+      const _b = await parseExpressionTree(b as ExpressionTree, radixCtx, varCtx)
       return evalAddSub(op, _a as ExpressionValue, _b as ExpressionValue)
     }
   }
   else if (op === ABS_GROUP_OP && b === undefined) {
-    return evalAbs(parseExpressionTree(a as ExpressionTree, radixCtx, varCtx) as ExpressionValue)
+    return evalAbs(await parseExpressionTree(a as ExpressionTree, radixCtx, varCtx) as ExpressionValue)
   }
   else if (op === MUL_OP || op === DIV_OP) {
     return evalMulDiv(
       op,
-      parseExpressionTree(a as ExpressionTree, radixCtx, varCtx) as ExpressionValue,
-      parseExpressionTree(b as ExpressionTree, radixCtx, varCtx) as ExpressionValue
+      await parseExpressionTree(a as ExpressionTree, radixCtx, varCtx) as ExpressionValue,
+      await parseExpressionTree(b as ExpressionTree, radixCtx, varCtx) as ExpressionValue
     )
   }
   else if (op === EXP_OP) {
     return evalPow(
-      parseExpressionTree(a as ExpressionTree, radixCtx, varCtx) as ExpressionValue,
-      parseExpressionTree(b as ExpressionTree, radixCtx, varCtx) as ExpressionValue
+      await parseExpressionTree(a as ExpressionTree, radixCtx, varCtx) as ExpressionValue,
+      await parseExpressionTree(b as ExpressionTree, radixCtx, varCtx) as ExpressionValue
     )
   }
   else if (op === ITEM_DELIM_OP) {
     // return collection of values
-    return new ExpressionValueCollection(node.slice(1).map(i => parseExpressionTree(i as ExpressionTree, radixCtx, varCtx) as ExpressionValue))
+    return new ExpressionValueCollection(await Promise.all(
+      node.slice(1).map(async i => await parseExpressionTree(i as ExpressionTree, radixCtx, varCtx) as ExpressionValue)
+    ))
   }
   else if (op === VEC_ACCESS_OP && (a === VectorType.CCoord || a === VectorType.TCoord)) {
-    const _b = parseExpressionTree(b as ExpressionTree, a === VectorType.CCoord ? RadixType.D : RadixType.Q, varCtx)
+    const _b = await parseExpressionTree(b as ExpressionTree, a === VectorType.CCoord ? RadixType.D : RadixType.Q, varCtx)
 
     if (_b instanceof CartesianCoordinate || _b instanceof Tetracoordinate) {
       // vector type conversion
@@ -402,8 +417,8 @@ function parseExpressionTree(node: ExpressionTree, radixCtx: RadixType = RadixTy
   else if (op === EQ_STRICT_OP || op === NEQ_STRICT_OP && b !== undefined) {
     const eq = evalEq(
       EQ_STRICT_OP,
-      parseExpressionTree(a as ExpressionTree, radixCtx, varCtx) as ExpressionValue,
-      parseExpressionTree(b as ExpressionTree, radixCtx, varCtx) as ExpressionValue
+      await parseExpressionTree(a as ExpressionTree, radixCtx, varCtx) as ExpressionValue,
+      await parseExpressionTree(b as ExpressionTree, radixCtx, varCtx) as ExpressionValue
     )
     return (op === EQ_STRICT_OP) ? eq : !eq
   }
@@ -416,6 +431,13 @@ function parseExpressionTree(node: ExpressionTree, radixCtx: RadixType = RadixTy
       throw new Error(`cannot evaluate assignment ${node} without variable context`)
     }
     return evalAssignNode(a as ExpressionTree, b as ExpressionTree | ExpressionValue, varCtx)
+  }
+  else if (op === EXPR_CALC_ACCESS_OP && (a === EXPR_CALC_TYPE)) {
+    // convert exprcalc[<file-path>] to ExpressionCalculator
+    return await loadExprCalc(
+      // evaluate literal string key like exprcalc["<file-path>"] same as exprcalc[<file-path>]
+      typeof b !== 'string' ? (b as ExpressionTree)[1] as string : b
+    )
   }
   else if (op === VAR_ACCESS_DOT_OP || op === VAR_ACCESS_BRACKET_OP) {
     // evaluate left variable reference
@@ -465,13 +487,13 @@ function parseExpressionTree(node: ExpressionTree, radixCtx: RadixType = RadixTy
  * Evaluates expression, reads and writes the given variable context, and returns the result.
  */
 
-export function evalExpression(expr: string, varCtx?: VariableContext): ExpressionValue {
+export async function evalExpression(expr: string, varCtx?: VariableContext): Promise<ExpressionValue> {
   logger.info(`parse raw expression=${expr}`)
 
   expr = preparseExpression(expr)
   logger.debug(`preparsed expression=${expr}`)
 
-  const res = parseExpressionTree(parse(expr), undefined, varCtx) as ExpressionValue
+  const res = await parseExpressionTree(parse(expr), undefined, varCtx) as ExpressionValue
   logger.debug(`result=${res}`)
   if (varCtx) {
     varCtx[VAR_ANS_ID] = res

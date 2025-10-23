@@ -4,7 +4,7 @@
  */
 
 import pino, { Level } from "pino"
-import yargs, { boolean } from "yargs"
+import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 import { RadixType, parsePowerScalar, PowerScalar } from "../tetracoord/scalar"
 import { VectorType, Tetracoordinate, CartesianCoordinate } from "../tetracoord/vector"
@@ -14,8 +14,8 @@ import type { ExpressionValue } from "../tetracoord/calculator/expression/const"
 import { VariableContext } from "../tetracoord/calculator/variablecontext"
 import type { Serializable, SerialVarCtx } from "../tetracoord/serializer/const"
 import * as readline from "node:readline/promises"
-import path from "node:path"
 import { loadFile, saveFile } from "./filesystem"
+import { ExpressionCalculator } from "../tetracoord/calculator/expression/expressioncalculator"
 
 const logStream = pino.destination({
   dest: process.stdout.fd,
@@ -280,7 +280,7 @@ async function main(opts: Opts) {
   }
 
   // evaluate
-  const res = evalExpression(expr, cliCtx[VAR_CTX_ID])
+  const res = await evalExpression(expr, cliCtx[VAR_CTX_ID])
   logger.info(`raw result = ${res}`)
 
   // show result

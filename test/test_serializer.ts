@@ -18,7 +18,7 @@ type TestCtx = Serializable & {
 
 describe('serialize', () => {
   describe('memory', () => {
-    it('serializes and deserializes scalar values', () => {
+    it('serializes and deserializes scalar values', async () => {
       let _id: string, _val: ExpressionValue, _err: Error|undefined, sVal: SerialPowerScalar|ExpressionPrimitiveValue, dVal: PowerScalar|ExpressionPrimitiveValue
   
       for (let [id, val, err] of [
@@ -37,14 +37,14 @@ describe('serialize', () => {
           assert.throws(() => serialize(_val), _err.message)
         }
         else {
-          sVal = serialize(_val) as SerialPowerScalar|ExpressionPrimitiveValue
-          dVal = deserialize(sVal) as PowerScalar|ExpressionPrimitiveValue
+          sVal = await serialize(_val) as SerialPowerScalar|ExpressionPrimitiveValue
+          dVal = await deserialize(sVal) as PowerScalar|ExpressionPrimitiveValue
           assert.deepStrictEqual(dVal, _val, `${id}: mismatch original=${_val} serialized=${sVal} deserialized=${dVal}`)
         }
       }
     })
   
-    it('serializes and deserializes vector values', () => {
+    it('serializes and deserializes vector values', async () => {
       let _id: string, _val: ExpressionValue, sVal: SerialCartesianCoord|SerialTetracoord, dVal: CartesianCoordinate|Tetracoordinate
   
       for (let [id, val] of [
@@ -55,20 +55,20 @@ describe('serialize', () => {
         _id = id as string
         _val = val as ExpressionValue
   
-        sVal = serialize(_val) as SerialCartesianCoord|SerialTetracoord
-        dVal = deserialize(sVal) as CartesianCoordinate|Tetracoordinate
+        sVal = await serialize(_val) as SerialCartesianCoord|SerialTetracoord
+        dVal = await deserialize(sVal) as CartesianCoordinate|Tetracoordinate
         assert.deepStrictEqual(dVal, _val, `${id}: mismatch original=${_val} serialized=${sVal} deserialized=${dVal}`)
       }
     })
   })
 
   describe('filesystem storage', () => {
-    it('saves and loads variable context', () => {
+    it('saves and loads variable context', async () => {
       const varCtx = new VariableContext()
       varCtx[VAR_ANS_ID] = new CartesianCoordinate(5, -1)
-      varCtx.set('coefficient', evalExpression('-0b0.1')) // -0.5
+      varCtx.set('coefficient', await evalExpression('-0b0.1')) // -0.5
       
-      evalExpression('var.$ans * var.coefficient', varCtx) // var.$ans = (-0.25, 0.5)
+      await evalExpression('var.$ans * var.coefficient', varCtx) // var.$ans = (-0.25, 0.5)
 
       const filePath = 'test/out/test-serializer.data.json'
       saveFile(filePath, {type: 'test', var: varCtx.save()} as TestCtx)

@@ -5,7 +5,15 @@ import { VAR_ANS_ID } from "../src/tetracoord/calculator/symbol"
 import { evalExpression } from "../src/tetracoord/calculator/expression"
 import { parsePowerScalar, PowerScalar } from "../src/tetracoord/scalar/powerscalar"
 import { RadixType } from "../src/tetracoord/scalar/radix"
-import { CartesianCoordinate } from "../src/tetracoord"
+import { CartesianCoordinate, Tetracoordinate } from "../src/tetracoord"
+import type { Serializable, SerialVarCtx } from "../src/tetracoord/serializer/const"
+import { loadFile, saveFile } from "../src/cli/filesystem"
+import { ExpressionCalculator } from "../src/tetracoord/calculator/expression/expressioncalculator"
+import VectorAverageMagnitude from "./res/exprcalc_vectoravg"
+
+type TestCtx = Serializable & {
+  var: SerialVarCtx
+}
 
 describe('variable context', () => {
   const varCtx = new VariableContext()
@@ -21,15 +29,15 @@ describe('variable context', () => {
 
   describe('standard variable members', () => {
     it('fails if context not defined', () => {
-      assert.throws(() => evalExpression('var.a = 1'))
+      assert.rejects(async () => await evalExpression('var.a = 1'))
     })
 
     it('fails if illegal access', () => {
-      assert.throws(() => evalExpression('var.$ans = 1'))
+      assert.rejects(async () => await evalExpression('var.$ans = 1'))
     })
 
-    it('assigns to existing and new var members', () => {
-      let res = evalExpression(
+    it('assigns to existing and new var members', async () => {
+      let res = await evalExpression(
         'var.five0q = 0q3 + (var.one0b = 0b1.1i)', 
         varCtx
       )
@@ -51,16 +59,16 @@ describe('variable context', () => {
 
       assert.strictEqual((varCtx[VAR_ANS_ID] as PowerScalar).toNumber(), (res as PowerScalar).toNumber(), 'var.$ans vs ans')
 
-      evalExpression('var[six0d] = 6', varCtx)
+      await evalExpression('var[six0d] = 6', varCtx)
       assert.strictEqual(varCtx.get('six0d'), 6, 'var[six0d]')
-      evalExpression('var["seven0d is a decimal raw scalar"] = 7.0', varCtx)
+      await evalExpression('var["seven0d is a decimal raw scalar"] = 7.0', varCtx)
       assert.strictEqual(varCtx.get('seven0d is a decimal raw scalar'), 7, 'var["seven0d is a decimal raw scalar"]')
     })
 
-    it(`references var members including ${VAR_ANS_ID}`, () => {
-      evalExpression('var.pt1 = cc[3, 3 + var.one0b]', varCtx)
+    it(`references var members including ${VAR_ANS_ID}`, async () => {
+      await evalExpression('var.pt1 = cc[3, 3 + var.one0b]', varCtx)
 
-      evalExpression('var.pt2 = var.$ans * 2', varCtx)
+      await evalExpression('var.pt2 = var.$ans * 2', varCtx)
 
       const pt1 = varCtx.get('pt1') as CartesianCoordinate
       const pt2 = varCtx.get('pt2') as CartesianCoordinate
@@ -70,10 +78,76 @@ describe('variable context', () => {
   })
 
   describe('ExpressionCalculator members, calculator extensions', () => {
-    it('fails if calc extension file is missing or wrong type')
+    it('fails if calc extension file is missing or exports wrong type', () => {
+      for (let inFilePath of [
+        'test/res/test-vectoravg_missing.json',
+        'test/res/test-vectoravg_mistyped.json'
+      ]) {
+        assert.rejects(async () => {
+          const testCtx = loadFile(inFilePath) as TestCtx
+          await varCtx.load(testCtx.var)
+        })
+      }
+    })
 
-    it('loads calc extension from file')
+    it('loads calc extension from file', async () => {
+      const testCtx = loadFile('test/res/test-vectoravg.json') as TestCtx
+      await varCtx.load(testCtx.var)
 
-    it('saves calc extension to file')
+      const vectorAvgMag = varCtx.get('vectorAvgMag')
+      assert(
+        vectorAvgMag instanceof ExpressionCalculator && vectorAvgMag instanceof VectorAverageMagnitude,
+        `unexpected type of var.vectorAvgMag=${vectorAvgMag}`
+      )
+
+      const vectors = [
+        new Tetracoordinate('10'),  // mag=0d2
+        new Tetracoordinate('3'),   // mag=0d1
+        new Tetracoordinate('2')    // mag=0d1
+      ]
+      assert.strictEqual(
+        Math.round((vectorAvgMag as ExpressionCalculator).eval({items: vectors}) as number * 1e7) / 1e7,
+        Math.round(4/3 * 1e7) / 1e7,
+        `mismatch of average vector magnitude expression calculator`
+      )
+    })
+
+    it('loads calc extension within var.method assignment expression and saves calc extension to file', async () => {
+      // load in expression
+      const vectorAvgMag = await evalExpression('var.vectorAvgMag = exprcalc["test/res/exprcalc_vectoravg.ts"]', varCtx)
+      assert(
+        vectorAvgMag instanceof ExpressionCalculator 
+        && vectorAvgMag instanceof VectorAverageMagnitude, 
+        `res did not import the right type of ${vectorAvgMag}`
+      )
+      assert(
+        varCtx.get('vectorAvgMag') instanceof ExpressionCalculator 
+        && varCtx.get('vectorAvgMag') instanceof VectorAverageMagnitude, 
+        `var.vectorAvgMag did not import the right type of ${varCtx.get("vectorAvgMax")}`
+      )
+
+      // save to file
+      const filePath = 'test/out/test-variablecontext-exprcalc.data.json'
+      saveFile(filePath, {type: 'test', var: varCtx.save()} as TestCtx)
+
+      // load from same file
+      const testCtx = loadFile(filePath) as TestCtx
+      const _varCtx = new VariableContext()
+      await _varCtx.load(testCtx.var)
+      assert.deepEqual(varCtx, _varCtx)
+
+      const avgMag = (_varCtx.get('vectorAvgMag') as VectorAverageMagnitude).eval({
+        items: [
+          new Tetracoordinate('10'),  // mag=0d2
+          new Tetracoordinate('3'),   // mag=0d1
+          new Tetracoordinate('2')    // mag=0d1
+        ]
+      })
+      assert.strictEqual(
+        Math.round(avgMag as number * 1e7) / 1e7,
+        Math.round(4/3 * 1e7) / 1e7,
+        `mismatch of average vector magnitude expression calculator after load->save->load`
+      )
+    })
   })
 })

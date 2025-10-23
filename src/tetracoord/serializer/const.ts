@@ -3,6 +3,7 @@ import { VAR_ANS_ID, VarCtxId } from "../calculator/symbol"
 import { ByteLevelOrder, PowerScalar, RadixType, RawScalar, ScalarTypePower, Sign } from "../scalar"
 import type { VectorTypeCC, VectorTypeTC } from "../vector"
 import type { ExpressionPrimitiveValue, ExpressionValue } from "../calculator/expression/const"
+import { ExprCalcType } from "../calculator/expression/expressioncalculator"
 
 export interface Serializable {
   /**
@@ -67,7 +68,14 @@ export interface SerialCartesianCoord extends Serializable {
    */
   y: PowerScalar|SerialPowerScalar
 }
-export type SerialExprVal = ExpressionPrimitiveValue | SerialPowerScalar | SerialTetracoord | SerialCartesianCoord
+export interface SerialExprCalc extends Serializable {
+  type: ExprCalcType
+  /**
+   * Path to this file, relative to working directory. On demand, converted to absolute path for import compatibility.
+   */
+  filePath: string
+}
+export type SerialExprVal = ExpressionPrimitiveValue | SerialPowerScalar | SerialTetracoord | SerialCartesianCoord | SerialExprCalc
 export interface SerialVarCtx extends Serializable {
   type: VarCtxId
   /**

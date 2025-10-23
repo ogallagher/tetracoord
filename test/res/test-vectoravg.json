@@ -1,0 +1,10 @@
+{
+  "var": {
+    "values": {
+        "vectorAvgMag": {
+        "type": "exprcalc",
+        "filePath": "./test/res/exprcalc_vectoravg.ts"
+      }
+    }
+  }
+}

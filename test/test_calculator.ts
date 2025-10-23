@@ -1,12 +1,13 @@
 import { describe, it } from "mocha"
 import assert from "node:assert"
-import { ExpressionInnerValue, evalExpression, preparseExpression, ABS_GROUP_OP } from "../src/tetracoord/calculator"
+import { ExpressionInnerValue, evalExpression, preparseExpression } from "../src/tetracoord/calculator/expression"
 import { parsePowerScalar, PowerScalar, RadixType } from "../src/tetracoord/scalar"
 import { 
   Tetracoordinate as Tcoord, 
   CartesianCoordinate as Ccoord, 
   TRIG_COS_PI_OVER_6, TRIG_SIN_PI_OVER_6 
 } from "../src/tetracoord/vector"
+import { ABS_GROUP_OP } from "../src/tetracoord/calculator/symbol"
 
 /**
  * Calls `evalExpression` with additional error details on failure.
@@ -44,7 +45,7 @@ describe('calculator', () => {
       }
     })
 
-    it('evals scalar literals', () => {
+    it('evals scalar literals', async () => {
       let actual: ExpressionInnerValue
 
       for (let [input, expected] of [
@@ -77,7 +78,7 @@ describe('calculator', () => {
           })
         ]
       ]) {
-        actual = testEvalExpression(input as string)
+        actual = await testEvalExpression(input as string)
         if (typeof expected === 'number') {
           assert.strictEqual(actual, expected, `mismatch for input=${input}`)
         }
@@ -87,7 +88,7 @@ describe('calculator', () => {
       }
     })
 
-    it('evals tcoord vector literals', () => {
+    it('evals tcoord vector literals', async () => {
       let actual: Tcoord
 
       for (let [input, expected] of [
@@ -99,7 +100,7 @@ describe('calculator', () => {
         ['tc[-0q312.1i]', new Tcoord('-3121', undefined, undefined, -1, true)],
         ['tc[0q0.2 + 0q0.2]', new Tcoord('1')]
       ]) {
-        actual = testEvalExpression(input as string) as Tcoord
+        actual = await testEvalExpression(input as string) as Tcoord
         assert.deepStrictEqual(
           actual.value.toString(RadixType.Q), 
           (expected as Tcoord).value.toString(), 
@@ -108,7 +109,7 @@ describe('calculator', () => {
       }
     })
 
-    it('evals ccoord vector literals', () => {
+    it('evals ccoord vector literals', async () => {
       let actual: Ccoord
 
       for (let [input, expected] of [
@@ -122,12 +123,12 @@ describe('calculator', () => {
           )
         ]
       ]) {
-        actual = testEvalExpression(input as string) as Ccoord
+        actual = await testEvalExpression(input as string) as Ccoord
         assert.deepStrictEqual(actual.toString(), (expected as Ccoord).toString(), `mismatch for input=${input}`)
       }
     })
 
-    it('evals rational,irrational vector conversion', () => {
+    it('evals rational,irrational vector conversion', async () => {
       let actual: ExpressionInnerValue
       const tcoordCellRadius = Tcoord.cellRadius(0)
 
@@ -145,7 +146,7 @@ describe('calculator', () => {
         ['tc[cc[-cospi6, -sinpi6]]', new Tcoord('2')],
         ['tc[-cc[cospi6, sinpi6]]', new Tcoord('2')]
       ]) {
-        actual = testEvalExpression(input as string)
+        actual = await testEvalExpression(input as string)
         
         if (actual instanceof Ccoord) {
           const dist = Ccoord.subtract(actual, expected as Ccoord).magnitude
@@ -169,8 +170,8 @@ describe('calculator', () => {
     describe('scalar', () => {
       let actual: ExpressionInnerValue
 
-      const test = (input: string, expected: number|PowerScalar, maxError = 0) => {
-        actual = testEvalExpression(input)
+      const test = async (input: string, expected: number|PowerScalar, maxError = 0) => {
+        actual = await testEvalExpression(input)
         if (typeof expected === 'number') {
           assert(
             Math.abs((actual as number) - expected) <= maxError, 
@@ -229,7 +230,7 @@ describe('calculator', () => {
     })
 
     describe('vector', () => {
-      it('evals vector add,subtract', () => {
+      it('evals vector add,subtract', async () => {
         let actual: ExpressionInnerValue
 
         for (let [input, expected] of [
@@ -245,7 +246,7 @@ describe('calculator', () => {
           ['tc[0q1] + tc[0q3] + tc[0q3]', new Tcoord('21')],
           ['tc[0q1] + tc[-cc[cospi6, -sinpi6]]', new Tcoord('32')] // mixed types
         ]) {
-          actual = testEvalExpression(input as string)
+          actual = await testEvalExpression(input as string)
           assert.deepStrictEqual(
             expected instanceof Ccoord ? (actual as Ccoord).toString(RadixType.D) : (actual as Tcoord).toString(), 
             expected instanceof Ccoord ? (expected as Ccoord).toString(RadixType.D) : (actual as Tcoord).toString(), 
@@ -254,7 +255,7 @@ describe('calculator', () => {
         }
       })
 
-      it('evals irrational vector add,subtract', () => {
+      it('evals irrational vector add,subtract', async () => {
         let actual: ExpressionInnerValue
         const maxError = 1e-8
 
@@ -267,7 +268,7 @@ describe('calculator', () => {
           ['cc[3.9i, 2i] + cc[1, -0.2i]', new Ccoord(5, 2)],
           ['cc[3.9i, 2i] - cc[-1, 0.2i]', new Ccoord(5, 2)]
         ]) {
-          actual = testEvalExpression(input as string)
+          actual = await testEvalExpression(input as string)
           const _actual = (actual instanceof Ccoord) ? actual : (actual as Tcoord).toCartesianCoord()
           const _expected = (expected instanceof Ccoord) ? expected : (expected as Tcoord).toCartesianCoord()
 
@@ -323,7 +324,7 @@ describe('calculator', () => {
         }
       }
 
-      it('evals semiscalar multiply,divide', () => {
+      it('evals semiscalar multiply,divide', async () => {
         let actual: ExpressionInnerValue
 
         for (let [input, expected] of [
@@ -347,12 +348,12 @@ describe('calculator', () => {
           ['tc[0q202] / 0d3', new Tcoord('2')],
           ['tc[0q22] / -3.0', new Tcoord('2')],
         ]) {
-          actual = testEvalExpression(input as string)
+          actual = await testEvalExpression(input as string)
           test(input as string, actual, expected as ExpressionInnerValue)
         }
       })
 
-      it('evals semiscalar exponent', () => {
+      it('evals semiscalar exponent', async () => {
         let actual: ExpressionInnerValue
 
         for (let [input, expected] of [
@@ -374,13 +375,13 @@ describe('calculator', () => {
             assert.throws(() => testEvalExpression(input as string))
           }
           else {
-            actual = testEvalExpression(input as string)
+            actual = await testEvalExpression(input as string)
             test(input as string, actual, expected as ExpressionInnerValue)
           }
         }
       })
 
-      it('evals semiscalar abs,magnitude', () => {
+      it('evals semiscalar abs,magnitude', async () => {
         let actual: ExpressionInnerValue
         const maxError = 1e-7
 
@@ -405,13 +406,13 @@ describe('calculator', () => {
             assert.throws(() => testEvalExpression(input as string))
           }
           else {
-            actual = testEvalExpression(input as string)
+            actual = await testEvalExpression(input as string)
             test(input as string, actual, expected as ExpressionInnerValue, maxError)
           }
         }
       })
 
-      it('evals semiscalar irrational mult,div,exp,abs', () => {
+      it('evals semiscalar irrational mult,div,exp,abs', async () => {
         let actual: ExpressionInnerValue
 
         for (let [input, expected] of [
@@ -442,7 +443,7 @@ describe('calculator', () => {
           ['|-cc[0.5i,1i]|', ((5/9)**2 + (1 + 1/9)**2) ** 0.5],
           ['|tc[-2]|', 1]
         ]) {
-          actual = testEvalExpression(input as string)
+          actual = await testEvalExpression(input as string)
           test(input as string, actual, expected as ExpressionInnerValue, 1e-7)
         }
       })
@@ -451,7 +452,7 @@ describe('calculator', () => {
 
   describe('boolean logic, comparison', () => {
     describe('comparison equality', () => {
-      it('evals equality of tcoord vectors', () => {
+      it('evals equality of tcoord vectors', async () => {
         let actual: boolean
         
         for (let [a, b, expected] of [
@@ -463,8 +464,8 @@ describe('calculator', () => {
           ['tc[32i]', 'tc[23.333i]', true],
           ['tc[0.2i] * 0d3', 'tc[22]', true]
         ]) {
-          const _a = testEvalExpression(a as string) as Tcoord
-          const _b = testEvalExpression(b as string) as Tcoord
+          const _a = await testEvalExpression(a as string) as Tcoord
+          const _b = await testEvalExpression(b as string) as Tcoord
   
           actual = _a.equals(_b)
           assert.strictEqual(
@@ -478,7 +479,7 @@ describe('calculator', () => {
         }
       })
 
-      it('evals strict scalar and vector equality', () => {
+      it('evals strict scalar and vector equality', async () => {
         let actual: boolean
 
         for (let [idx, [input, expected]] of [
@@ -517,7 +518,7 @@ describe('calculator', () => {
             assert.throws(() => testEvalExpression(input as string))
           }
           else {
-            actual = testEvalExpression(input as string) as boolean
+            actual = await testEvalExpression(input as string) as boolean
             assert.strictEqual(
               actual, 
               expected as boolean, 
@@ -530,7 +531,7 @@ describe('calculator', () => {
   })
 
   describe('groups and operation order', () => {
-    it('evals groups', () => {
+    it('evals groups', async () => {
       let actual: ExpressionInnerValue
 
       for (let [input, expected] of [
@@ -547,7 +548,7 @@ describe('calculator', () => {
         ['tc[(0d2 * 0d2)]', new Tcoord(parsePowerScalar(4, RadixType.D)!)],
         ['tc[(2 * 2)]', new Tcoord(parsePowerScalar('10', RadixType.Q)!)] // implied radix=q for tcoord
       ]) {
-        actual = testEvalExpression(input as string)
+        actual = await testEvalExpression(input as string)
         if (typeof expected === 'number') {
           assert.strictEqual(actual, expected, `mismatch for input=${input}`)
         }

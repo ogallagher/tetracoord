@@ -43,11 +43,11 @@ export class VariableContext implements SerialVarCtx {
    * 
    * @param varCtx Other variable context.
    */
-  load(varCtx: SerialVarCtx) {
-    this[VAR_ANS_ID] = deserialize(varCtx[VAR_ANS_ID])
+  async load(varCtx: SerialVarCtx) {
+    this[VAR_ANS_ID] = await deserialize(varCtx[VAR_ANS_ID])
 
     for (let [key, val] of Object.entries(varCtx.values)) {
-      this.values[key] = deserialize(val as SerialExprVal)
+      this.values[key] = await deserialize(val as SerialExprVal)
     }
   }
 

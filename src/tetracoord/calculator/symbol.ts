@@ -32,6 +32,7 @@ export const VAR_ACCESS_DOT_OP = WHOL_FRAC_DELIM
  */
 export const VEC_ACCESS_OP = '[]'
 export const VAR_ACCESS_BRACKET_OP = VEC_ACCESS_OP
+export const EXPR_CALC_ACCESS_OP = VEC_ACCESS_OP
 /**
  * Delimiter for items in a collection (ex. components in a cartesian coordinate).
  */
@@ -64,6 +65,10 @@ export const ABS_GROUP_OP = '||'
  * Parenthesis group operator.
  */
 export const GROUP_OP = '()'
+/**
+ * Method call operator.
+ */
+export const CALL_OP = GROUP_OP
 /**
  * Strict (same type) equal operator.
  */
