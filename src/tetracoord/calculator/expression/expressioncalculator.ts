@@ -25,7 +25,7 @@ export class ExpressionCalculator implements SerialExprCalc {
    * @throws {EvalError} Something failed (ex. unsupported arguments).
    * @throws {Error} Subclass does not implement this method.
    */
-  eval(_args: ExpressionInnerValue|undefined): ExpressionInnerValue {
+  eval(_args?: ExpressionInnerValue): ExpressionInnerValue {
     throw new Error(`expression calculator subclass must implement eval`)
   }
 

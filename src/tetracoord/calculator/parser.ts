@@ -6,7 +6,8 @@
 import "subscript/feature/number.js"
 import "subscript/feature/string.js"
 
-import "subscript/feature/call.js"   // custom call,access with same operator token
+import "subscript/feature/call.js"
+// TODO remove commented parser extensions if not needed
 // parser handle expression calculator method call. a(b,c,d), a()
 // access(CALL_OP, PREC_ACCESS)
 // operator(
@@ -22,18 +23,26 @@ import "subscript/feature/call.js"   // custom call,access with same operator to
 //   )
 // )
 
-import "subscript/feature/access.js" // custom call,access with same operator token
-// // a[b] copied from subscript/feature/access
+import "subscript/feature/access.js"
+// a[b]
 // access(VAR_ACCESS_BRACKET_OP, PREC_ACCESS)
 // operator(VAR_ACCESS_BRACKET_OP, (a: any, b: any) => !b ? err() : (a = compile(a), b = compile(b), ctx => a(ctx)[b(ctx)]))
 
-// a.b copied from subscript/feature/access
+// a.b
 // binary(VAR_ACCESS_DOT_OP, PREC_ACCESS)
 // operator(VAR_ACCESS_DOT_OP, (a: any, b: any) => (a = compile(a), b = !b[0] ? b[1] : b, ctx => a(ctx)[b])) // a.true, a.1 → needs to work fine
 
 import "subscript/feature/group.js"
 
-// import "subscript/feature/assign.js" // use custom assign operator spec
+import "subscript/feature/assign.js"
+// parser handle assign to variable context members
+// binary(ASSIGN_OP, PREC_ASSIGN, true)
+// operator(ASSIGN_OP, (a: any, b: any) => (
+//   b = compile(b),
+//   // a = x, ((a)) = x, a.b = x, a['b'] = x
+//   prop(a, (container: any, path: any, ctx: any) => container[path] = b(ctx))
+// ))
+
 import "subscript/feature/mult.js"
 import "subscript/feature/add.js"
 import "subscript/feature/increment.js"
@@ -68,14 +77,6 @@ unary(IRR_SUFFIX_OP, PREC_ACCESS + 1, true)
 // parser handle absolute value, magnitude
 group(ABS_GROUP_OP, PREC_GROUP)
 operator(ABS_GROUP_OP, (a: any, b: any) => b === undefined && (!a && err(`Empty ${ABS_GROUP_OP}`), compile(a)))
-
-// parser handle assign to variable context members
-binary(ASSIGN_OP, PREC_ASSIGN, true)
-operator(ASSIGN_OP, (a: any, b: any) => (
-  b = compile(b),
-  // a = x, ((a)) = x, a.b = x, a['b'] = x
-  prop(a, (container: any, path: any, ctx: any) => container[path] = b(ctx))
-))
 
 // parser handle strict type comparison (copied from justin)
 binary(EQ_STRICT_OP, PREC_EQ)

@@ -3,7 +3,7 @@ import { parse } from "../parser"
 import { RadixType, PowerScalar, parsePowerScalar } from "../../scalar"
 import { Tetracoordinate, CartesianCoordinate, VectorType } from "../../vector"
 import { type ExpressionValue, type ExpressionTree, type ExpressionLeaf, type ExpressionInnerValue, ExpressionValueCollection } from "./const"
-import { RADIX_PREFIX, IRR_SUFFIX_I, IRR_SUFFIX_DOTS, IRR_SUFFIX_OP, RADIX_PREFIX_OP, NEG_OP, MUL_OP, EQ_LOOSE_OP, VAR_ACCESS_DOT_OP, VAR_ACCESS_BRACKET_OP, VAR_CTX_ID, POS_OP, ABS_GROUP_OP, DIV_OP, EXP_OP, ITEM_DELIM_OP, VEC_ACCESS_OP, EQ_STRICT_OP, NEQ_STRICT_OP, GROUP_OP, ASSIGN_OP, VAR_ANS_ID, EXPR_CALC_ACCESS_OP } from "../symbol"
+import { RADIX_PREFIX, IRR_SUFFIX_I, IRR_SUFFIX_DOTS, IRR_SUFFIX_OP, RADIX_PREFIX_OP, NEG_OP, MUL_OP, EQ_LOOSE_OP, VAR_ACCESS_DOT_OP, VAR_ACCESS_BRACKET_OP, VAR_CTX_ID, POS_OP, ABS_GROUP_OP, DIV_OP, EXP_OP, ITEM_DELIM_OP, VEC_ACCESS_OP, EQ_STRICT_OP, NEQ_STRICT_OP, GROUP_OP, ASSIGN_OP, VAR_ANS_ID, EXPR_CALC_ACCESS_OP, CALL_OP } from "../symbol"
 import { VariableContext } from "../variablecontext"
 import { EXPR_CALC_TYPE, ExpressionCalculator } from "./expressioncalculator"
 import { deserialize, SerialExprCalc } from "../../serializer"
@@ -424,6 +424,35 @@ async function parseExpressionTree(node: ExpressionTree, radixCtx: RadixType = R
   }
   else if (op === GROUP_OP && b === undefined) {
     return parseExpressionTree(a as ExpressionTree, radixCtx, varCtx)
+  }
+  else if (op === CALL_OP && b !== undefined) {
+    // [() <method> <args>] or [() <method> null]
+    // left method reference
+    const exprCalc = await parseExpressionTree(a as ExpressionTree, radixCtx, varCtx) as ExpressionCalculator
+    if (!(exprCalc instanceof ExpressionCalculator)) {
+      throw new SyntaxError(`invalid call of identifier=${exprCalc} that is not instance of ExpressionCalculator`)
+    }
+    // right arguments
+    const args = (
+      b === null
+      // no args
+      ? b
+      // b must be tree because non literal identifiers always belong to var, requiring access, and literal primitives are lists with undefined first item 
+      : await parseExpressionTree(b as ExpressionTree, radixCtx, varCtx)
+    )
+
+    // perform call
+    return exprCalc.eval(
+      args === null
+      // no args
+      ? undefined
+      // value collection
+      : (
+        args instanceof ExpressionValueCollection
+        ? args
+        : new ExpressionValueCollection([args as ExpressionValue])
+      )
+    )
   }
   else if (op === ASSIGN_OP && b !== undefined) {
     // assignment var.<member> = <value> (or var[member] = <value>)

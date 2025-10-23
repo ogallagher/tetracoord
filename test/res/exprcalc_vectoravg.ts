@@ -1,6 +1,6 @@
 import { Tetracoordinate } from "../../src/tetracoord/vector/tetracoordinate"
 import { CartesianCoordinate } from "../../src/tetracoord/vector/cartesian"
-import type { ExpressionInnerValue, ExpressionValueCollection } from "../../src/tetracoord/calculator/expression/const"
+import { ExpressionInnerValue, ExpressionValueCollection } from "../../src/tetracoord/calculator/expression/const"
 import { ExpressionCalculator } from "../../src/tetracoord/calculator/expression/expressioncalculator"
 
 export default class VectorAverageMagnitude extends ExpressionCalculator {  
@@ -8,8 +8,13 @@ export default class VectorAverageMagnitude extends ExpressionCalculator {
    * @param args Collection of vectors
    * @returns Average magnitude.
    */
-  eval(args: ExpressionValueCollection): ExpressionInnerValue {
+  eval(args?: ExpressionValueCollection): ExpressionInnerValue {
     try {
+      // handle no args
+      if (args === undefined) {
+        return 0
+      }
+
       const vectors = args.items as (Tetracoordinate|CartesianCoordinate)[]
       const count = vectors.length
       const sum = (

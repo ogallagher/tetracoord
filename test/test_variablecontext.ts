@@ -78,6 +78,8 @@ describe('variable context', () => {
   })
 
   describe('ExpressionCalculator members, calculator extensions', () => {
+    const vectorAvgMagPath = 'test/res/exprcalc_vectoravg.ts'
+
     it('fails if calc extension file is missing or exports wrong type', () => {
       for (let inFilePath of [
         'test/res/test-vectoravg_missing.json',
@@ -114,7 +116,7 @@ describe('variable context', () => {
 
     it('loads calc extension within var.method assignment expression and saves calc extension to file', async () => {
       // load in expression
-      const vectorAvgMag = await evalExpression('var.vectorAvgMag = exprcalc["test/res/exprcalc_vectoravg.ts"]', varCtx)
+      const vectorAvgMag = await evalExpression(`var.vectorAvgMag = exprcalc["${vectorAvgMagPath}"]`, varCtx)
       assert(
         vectorAvgMag instanceof ExpressionCalculator 
         && vectorAvgMag instanceof VectorAverageMagnitude, 
@@ -147,6 +149,22 @@ describe('variable context', () => {
         Math.round(avgMag as number * 1e7) / 1e7,
         Math.round(4/3 * 1e7) / 1e7,
         `mismatch of average vector magnitude expression calculator after load->save->load`
+      )
+    })
+
+    it('evaluates calc expr method call', async () => {
+      // with args
+      await evalExpression(`var.avgMag = exprcalc["${vectorAvgMagPath}"](tc[10], tc[3], tc[2])`, varCtx)
+      assert.strictEqual(
+        Math.round(varCtx.get('avgMag') as number * 1e7) / 1e7,
+        Math.round(4/3 * 1e7) / 1e7,
+        `mismatch of average vector magnitude expression calculator after eval <method>(a, b, c)`
+      )
+
+      // no args
+      await evalExpression(`exprcalc["${vectorAvgMagPath}"]() + 3`, varCtx)
+      assert.strictEqual(
+        varCtx[VAR_ANS_ID], 0 + 3, `mismatch of avg=0 after eval <method>()`
       )
     })
   })
