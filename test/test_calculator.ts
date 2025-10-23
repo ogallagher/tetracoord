@@ -372,7 +372,7 @@ describe('calculator', () => {
           ['0d3 ** tc[0q2]', new Error('not commutative and left must be vector')]
         ]) {
           if (expected instanceof Error) {
-            assert.throws(() => testEvalExpression(input as string))
+            assert.rejects(() => testEvalExpression(input as string))
           }
           else {
             actual = await testEvalExpression(input as string)
@@ -403,7 +403,7 @@ describe('calculator', () => {
           ['|tc[|-2|]|', 1]
         ]) {
           if (expected instanceof Error) {
-            assert.throws(() => testEvalExpression(input as string))
+            assert.rejects(() => testEvalExpression(input as string))
           }
           else {
             actual = await testEvalExpression(input as string)
@@ -515,7 +515,7 @@ describe('calculator', () => {
           ['0q32i === (0q0 + 0d14.6i)', true]
         ].entries()) {
           if (expected instanceof Error) {
-            assert.throws(() => testEvalExpression(input as string))
+            assert.rejects(() => testEvalExpression(input as string))
           }
           else {
             actual = await testEvalExpression(input as string) as boolean

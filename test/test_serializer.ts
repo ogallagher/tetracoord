@@ -75,7 +75,7 @@ describe('serialize', () => {
       const testCtx = loadFile(filePath) as TestCtx
 
       const _varCtx = new VariableContext()
-      _varCtx.load(testCtx.var)
+      await _varCtx.load(testCtx.var)
       assert.deepStrictEqual(varCtx, _varCtx)
     })
   })
