@@ -1,5 +1,5 @@
 import pino from "pino"
-import { parse } from "subscript"
+import { parse } from "../parser"
 import { RadixType, PowerScalar, parsePowerScalar } from "../../scalar"
 import { Tetracoordinate, CartesianCoordinate, VectorType } from "../../vector"
 import { type ExpressionValue, type ExpressionTree, type ExpressionLeaf, type ExpressionInnerValue, ExpressionValueCollection } from "./const"

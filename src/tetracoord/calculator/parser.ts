@@ -5,9 +5,34 @@
 // enable subset of default subscript syntax
 import "subscript/feature/number.js"
 import "subscript/feature/string.js"
-// import "subscript/feature/call.js"
-// import "subscript/feature/access.js" // custom call,access with same operator token
+
+import "subscript/feature/call.js"   // custom call,access with same operator token
+// parser handle expression calculator method call. a(b,c,d), a()
+// access(CALL_OP, PREC_ACCESS)
+// operator(
+//   CALL_OP, 
+//   (a: any, b: any, args: any) => b !== undefined && (
+//     args = !b 
+//     ? () => [] // a()
+//     : b[0] === ',' ? (b = b.slice(1).map(b => !b ? err() : compile(b)), ctx => b.map(arg => arg(ctx))) : // a(b,c)
+//         (b = compile(b), ctx => [b(ctx)]), // a(b)
+
+//     // a(...args), a.b(...args), a[b](...args)
+//     prop(a, (obj, path, ctx) => obj[path](...args(ctx)), true)
+//   )
+// )
+
+import "subscript/feature/access.js" // custom call,access with same operator token
+// // a[b] copied from subscript/feature/access
+// access(VAR_ACCESS_BRACKET_OP, PREC_ACCESS)
+// operator(VAR_ACCESS_BRACKET_OP, (a: any, b: any) => !b ? err() : (a = compile(a), b = compile(b), ctx => a(ctx)[b(ctx)]))
+
+// a.b copied from subscript/feature/access
+// binary(VAR_ACCESS_DOT_OP, PREC_ACCESS)
+// operator(VAR_ACCESS_DOT_OP, (a: any, b: any) => (a = compile(a), b = !b[0] ? b[1] : b, ctx => a(ctx)[b])) // a.true, a.1 → needs to work fine
+
 import "subscript/feature/group.js"
+
 // import "subscript/feature/assign.js" // use custom assign operator spec
 import "subscript/feature/mult.js"
 import "subscript/feature/add.js"
@@ -39,30 +64,6 @@ nary(RADIX_PREFIX_OP, PREC_ACCESS)
 
 // parser handle literal number irrational suffix as <raw-fractional-value> ~
 unary(IRR_SUFFIX_OP, PREC_ACCESS + 1, true)
-
-// parser handle expression calculator method call. a(b,c,d), a()
-access(CALL_OP, PREC_ACCESS)
-operator(
-  CALL_OP, 
-  (a: any, b: any, args: any) => b !== undefined && (
-    args = !b 
-    ? () => [] // a()
-    : b[0] === ',' ? (b = b.slice(1).map(b => !b ? err() : compile(b)), ctx => b.map(arg => arg(ctx))) : // a(b,c)
-        (b = compile(b), ctx => [b(ctx)]), // a(b)
-
-    // a(...args), a.b(...args), a[b](...args)
-    prop(a, (obj, path, ctx) => obj[path](...args(ctx)), true)
-  )
-)
-
-// a[b] copied from subscript/feature/access
-access(VAR_ACCESS_BRACKET_OP, PREC_ACCESS)
-operator(VAR_ACCESS_BRACKET_OP, (a: any, b: any) => !b ? err() : (a = compile(a), b = compile(b), ctx => a(ctx)[b(ctx)]))
-
-// a.b copied from subscript/feature/access
-binary(VAR_ACCESS_DOT_OP, PREC_ACCESS)
-operator(VAR_ACCESS_DOT_OP, (a: any, b: any) => (a = compile(a), b = !b[0] ? b[1] : b, ctx => a(ctx)[b])) // a.true, a.1 → needs to work fine
-
 
 // parser handle absolute value, magnitude
 group(ABS_GROUP_OP, PREC_GROUP)
