@@ -21,4 +21,5 @@ export enum VectorType {
    */
   TCoord = 'tc'
 }
-
+export type VectorTypeCC = VectorType.CCoord
+export type VectorTypeTC = VectorType.TCoord

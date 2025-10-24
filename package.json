@@ -1,21 +1,21 @@
 {
   "name": "tetracoord",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "Tetracoordinates engine, calculator.",
   "main": "index.js",
   "scripts": {
-    "_test": "NODE_OPTIONS=\"--import=tsx\" mocha",
-    "test": "npm run _test -- test/**/*.ts",
-    "testjs": "mocha test/**/*.js",
+    "_test": "mocha --import=tsx",
+    "test": "npm run _test -- test/*.ts",
+    "testjs": "mocha test/*.js",
     "pretestjs": "npm run compile",
-    "cli": "tsx src/cli_driver.ts",
+    "cli": "tsx src/cli/index.ts",
     "compile": "tsc --build tsconfig.json",
     "_pack": "npm pack --pack-destination dist",
-    "prepublish": "npm run compile && npm run _pack",
-    "clean": "rm index.js; rm index.d.ts; rm index.js.map; rm src/**/*.js; rm src/**/*.d.ts; rm src/**/*.js.map; rm test/**/*.js; rm test/**/*.d.ts; rm test/**/*.js.map;"
+    "_prepublish": "npm run compile && npm run _pack",
+    "clean": "rm index.js; rm index.d.ts; rm index.js.map; rm src/**/*.js; rm src/**/*.d.ts; rm src/**/*.js.map; rm test/**/*.js; rm test/**/*.d.ts; rm test/**/*.js.map; rm tsconfig.tsbuildinfo"
   },
   "bin": {
-    "tcoord": "src/cli_driver.js"
+    "tcoord": "src/cli/index.js"
   },
   "repository": {
     "type": "git",

@@ -3,7 +3,18 @@ import { B_BITS_PER_LEVEL, B_LEVELS_PER_BYTE, B_VALUES_PER_LEVEL, BITS_PER_BYTE 
 import { Q_BITS_PER_LEVEL, Q_LEVELS_PER_BYTE, Q_VALUES_PER_LEVEL } from "./quaternary"
 import { RadixType, radixToIrrDen, radixTypeToValue, radixValueToType } from "./radix"
 import { IRR_SUFFIX_I, NEG_OP, RADIX_PREFIX, WHOL_FRAC_DELIM } from "../calculator/symbol"
-import { RawScalar, RawScalarType, Sign } from "./const"
+import type { RawScalar, ScalarTypePower, Sign } from "./const"
+import { ScalarType, RawScalarType } from "./const"
+import type { SerialPowerScalar } from "../serializer/const"
+
+export type PowerScalarConstructorIn = {
+  digits: RawScalar
+  radix?: RadixType
+  power?: number
+  sign?: Sign
+  irrational?: boolean 
+  levelOrder?: ByteLevelOrder
+}
 
 /**
  * Represents a scalar value stored with a custom radix. 
@@ -11,40 +22,16 @@ import { RawScalar, RawScalarType, Sign } from "./const"
  * Decimal values are stored as positive integers, and non decimal as byte arrays (`Uint8Array`).
  * Other attributes (ex. {@linkcode PowerScalar.radix radix}, {@linkcode PowerScalar.power power}) are stored separately in order to retrieve the raw value.
  */
-export class PowerScalar {
-  /**
-   * If decimal, raw positive integer. If quaternary or binary, byte array.
-   */
+export class PowerScalar implements SerialPowerScalar {
+  type: ScalarTypePower = ScalarType.PowerScalar
   digits: RawScalar
-  /**
-   * Radix determines values (formatted digit) vs bits per level.
-   */
   radix: RadixType
-  /**
-   * Number of levels to shift the decimal point. Level shift is bit shift multiplied by bits per level, determined by the radix.
-   */
   power: number
-  /**
-   * The sign as `1` or `-1`.
-   */
   sign: Sign
-  /**
-   * Whether least significant digit repeats infinitely as fractional digits after decimal point.
-   */
   irrational: boolean
-  /**
-   * Order that levels are stored within each byte, and that the bytes are stored in the byte array.
-   */
   levelOrder: ByteLevelOrder
 
-  constructor({digits: d, radix: r = undefined, power: p = 0, sign: s = 1, irrational: i = false, levelOrder: o = ByteLevelOrder.DEFAULT} : {
-    digits: RawScalar
-    radix?: RadixType
-    power?: number
-    sign?: Sign
-    irrational?: boolean 
-    levelOrder?: ByteLevelOrder
-  }) {
+  constructor({digits: d, radix: r = undefined, power: p = 0, sign: s = 1, irrational: i = false, levelOrder: o = ByteLevelOrder.DEFAULT}: PowerScalarConstructorIn) {
     if (typeof d === 'number' && d < 0) {
       // separate sign from nominal digits
       d *= -1

@@ -14,6 +14,8 @@ import { RadixType } from "../scalar/radix"
 import { VEC_ACCESS_OP } from "../calculator/symbol"
 import { Pt } from "pts-math"
 import { VectorType } from "./const"
+import type { VectorTypeTC } from "./const"
+import type { SerialTetracoord } from "../serializer/const"
 
 // ts types interfaces
 
@@ -26,7 +28,9 @@ export type TetracoordBytes = Uint8Array | imaginary
 /**
  * Tetracoordinate point.
  */
-export class Tetracoordinate {
+export class Tetracoordinate implements SerialTetracoord {
+  type: VectorTypeTC = VectorType.TCoord
+
   static VALUES_PER_LEVEL: number = Q_VALUES_PER_LEVEL
   static BITS_PER_LEVEL: number = Q_BITS_PER_LEVEL
   static BITS_PER_BYTE: number = BITS_PER_BYTE
@@ -78,16 +82,7 @@ export class Tetracoordinate {
     [Tetracoordinate.NFOUR, [-1, 0]]
   ])
   
-  /**
-   * Byte array (binary) representation of this tcoord. 
-   * 
-   * Each tcoord digit/place value is represented with 2 bits.
-   * Each byte represents up to 4 tcoord digits (8/2=4).
-   */
   value: PowerScalar
-  /**
-   * Number of significant quad digits in this tcoord (can be less than num_bytes*4).
-   */
   num_levels: number
 
   /**

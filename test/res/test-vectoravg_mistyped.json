@@ -1,0 +1,10 @@
+{
+  "var": {
+    "values": {
+      "vectorAvgMagMissing": {
+        "type": "exprcalc",
+        "filePath": "./test/res/exprcalc_vectoravg_missing.ts"
+      }
+    }
+  }
+}

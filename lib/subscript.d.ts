@@ -25,3 +25,15 @@ declare module "subscript/src/const.js" {
 declare module "subscript/src/stringify.js" {
   export function stringify(node: any): any
 }
+
+declare module "subscript/src/compile.js" {
+  export const compile: {
+      (node: any): any;
+      id(name: any): (ctx: any) => any;
+  }
+  export default compile
+  
+  export const operator: (op: any, fn: any, prev?: any) => (...args: any[]) => any
+
+  export const prop: (a: any, fn: any, generic?: any, obj?: any, path?: any) => any
+}
