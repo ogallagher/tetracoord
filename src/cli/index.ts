@@ -262,7 +262,7 @@ async function main(opts: Opts) {
 
     try {
       const fileCtx = loadFile(filePath) as SerialCliContext
-      cliCtx[VAR_CTX_ID].load(fileCtx[VAR_CTX_ID])
+      await cliCtx[VAR_CTX_ID].load(fileCtx[VAR_CTX_ID])
     }
     catch (err) {
       logger.info(err)

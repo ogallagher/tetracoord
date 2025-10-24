@@ -5,44 +5,10 @@
 // enable subset of default subscript syntax
 import "subscript/feature/number.js"
 import "subscript/feature/string.js"
-
 import "subscript/feature/call.js"
-// TODO remove commented parser extensions if not needed
-// parser handle expression calculator method call. a(b,c,d), a()
-// access(CALL_OP, PREC_ACCESS)
-// operator(
-//   CALL_OP, 
-//   (a: any, b: any, args: any) => b !== undefined && (
-//     args = !b 
-//     ? () => [] // a()
-//     : b[0] === ',' ? (b = b.slice(1).map(b => !b ? err() : compile(b)), ctx => b.map(arg => arg(ctx))) : // a(b,c)
-//         (b = compile(b), ctx => [b(ctx)]), // a(b)
-
-//     // a(...args), a.b(...args), a[b](...args)
-//     prop(a, (obj, path, ctx) => obj[path](...args(ctx)), true)
-//   )
-// )
-
 import "subscript/feature/access.js"
-// a[b]
-// access(VAR_ACCESS_BRACKET_OP, PREC_ACCESS)
-// operator(VAR_ACCESS_BRACKET_OP, (a: any, b: any) => !b ? err() : (a = compile(a), b = compile(b), ctx => a(ctx)[b(ctx)]))
-
-// a.b
-// binary(VAR_ACCESS_DOT_OP, PREC_ACCESS)
-// operator(VAR_ACCESS_DOT_OP, (a: any, b: any) => (a = compile(a), b = !b[0] ? b[1] : b, ctx => a(ctx)[b])) // a.true, a.1 → needs to work fine
-
 import "subscript/feature/group.js"
-
 import "subscript/feature/assign.js"
-// parser handle assign to variable context members
-// binary(ASSIGN_OP, PREC_ASSIGN, true)
-// operator(ASSIGN_OP, (a: any, b: any) => (
-//   b = compile(b),
-//   // a = x, ((a)) = x, a.b = x, a['b'] = x
-//   prop(a, (container: any, path: any, ctx: any) => container[path] = b(ctx))
-// ))
-
 import "subscript/feature/mult.js"
 import "subscript/feature/add.js"
 import "subscript/feature/increment.js"
