@@ -261,6 +261,72 @@ npm run cli
 # result ~ 6
 ```
 
+<details>
+<summary>Another example, which uses the `VariableContext` argument. <code>subtab.js</code> (compiled to common-js before using)</summary>
+
+```typescript
+import { Tetracoordinate } from "tetracoord/src/tetracoord/vector"
+import { ExpressionCalculator, ExpressionInnerValue } from "tetracoord/src/tetracoord/calculator/expression"
+import { VariableContext } from "tetracoord/src/tetracoord/calculator/variablecontext"
+import { parsePowerScalar, PowerScalar, RadixType } from "tetracoord/src/tetracoord/scalar"
+import pino from "pino"
+
+const logger = pino({
+  name: 'tcoord.subtract-table'
+})
+
+export default class SubtractTable extends ExpressionCalculator {
+  /**
+   * Create a tcoord subtraction table.
+   * Each cell is `tc[x] - tc[y]`, ordered in a table such that `x` is the column index and `y` is the row index.
+   * 
+   * @param args Origin tetracoord, width, height.
+   * @returns Total count of differences calculated (should be `width * height`).
+   */
+  eval(
+    args?: { items: [
+      Tetracoordinate,
+      number,
+      number
+    ] },
+    varCtx?: VariableContext
+  ): ExpressionInnerValue {
+    try {
+      const [origin, width, height] = args.items
+      
+      let count = 0
+      let diff: Tetracoordinate
+      let xP: PowerScalar, yP: PowerScalar
+      let xS: string, yS: string
+      for (let x = origin.value.toNumber(), xOffset = 0; xOffset < width; xOffset++) {
+        for (let y = origin.value.toNumber(), yOffset = 0; yOffset < height; yOffset++) {
+          xP = parsePowerScalar(x + xOffset, RadixType.D), xS = xP.toString(RadixType.Q)
+          yP = parsePowerScalar(y + yOffset, RadixType.D), yS = yP.toString(RadixType.Q)
+
+          diff = (
+            new Tetracoordinate(xP)
+            .subtractFromCartesian(new Tetracoordinate(yP))
+          )
+
+          varCtx.set(
+            `subtract-table[${xS}, ${yS}] = ${diff.value.toString(RadixType.Q)}`, 
+            count++
+          )
+        }
+      }
+
+      return count
+    }
+    catch (err) {
+      logger.error(`failed to calculate average magnitude of ${args}. ${err}`)
+    }
+  }
+}
+// fix commonjs output, side-effect of my tsconfig settings
+module.exports = SubtractTable
+```
+</details>
+
 ## Develop
 
 ### Tests
