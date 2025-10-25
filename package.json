@@ -1,8 +1,9 @@
 {
   "name": "tetracoord",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Tetracoordinates engine, calculator.",
   "main": "index.js",
+  "type": "commonjs",
   "scripts": {
     "_test": "mocha --import=tsx",
     "test": "npm run _test -- test/*.ts",

@@ -84,6 +84,9 @@ export const NEQ_LOOSE_OP = '!='
  */
 export const ASSIGN_OP = '='
 
+export const STR_DQUOTE = '"'
+export const STR_QUOTE = "'"
+
 export const COSPI6_CONST = 'cospi6'
 export const SINPI6_CONST = 'sinpi6'
 

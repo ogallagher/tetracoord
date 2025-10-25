@@ -2,6 +2,7 @@ test/**/*
 local/**/*
 dist/**/*
 .vscode/**/*
+**/*data.json
 **/*.ts
 # include type declarations
 # !types/**/* not working; see tsconfig.json

@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
     "target": "esnext",
-    "module": "commonjs",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
     "sourceMap": true,
     "declaration": true,
     // "declarationDir": "types", separating declarations from js files currently makes them unusable... how to fix?
