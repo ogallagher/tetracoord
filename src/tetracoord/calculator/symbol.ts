@@ -1,4 +1,5 @@
 import type { RadixType } from "../scalar/radix"
+import type { CartesianComponent, TetracoordComponent } from "../vector"
 import type { VectorType } from "../vector/const"
 import type { VariableContext } from "./variablecontext"
 
@@ -89,6 +90,9 @@ export const STR_QUOTE = "'"
 
 export const COSPI6_CONST = 'cospi6'
 export const SINPI6_CONST = 'sinpi6'
+export const CCOORD_X: CartesianComponent = 'x'
+export const CCOORD_Y: CartesianComponent = 'y'
+export const TCOORD_V: TetracoordComponent = 'v'
 
 export type VarCtxId = 'var'
 /**

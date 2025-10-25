@@ -164,6 +164,37 @@ describe('calculator', () => {
         }
       }
     })
+
+    describe('vector component access', async () => {
+      it('fails if vector or component is invalid', () => {
+        for (let [input, reason] of [
+          ['a[x]', 'a is invalid vector'],
+          ['cc[z]', 'z is invalid ccoord component'],
+          ['tc[0].x', 'x is invalid tcoord component'],
+          ['tc[0].v = 1', 'component access is read only']
+        ]) {
+          assert.rejects(
+            () => evalExpression(input)
+          )
+        }
+      })
+
+      it('evals valid vector component access', async () => {
+        for (let [input, expected] of [
+          ['cc[3,4].x', 3],
+          ['cc[3,4][y]', 4],
+          ['cc[3,4]["y"]', 4],
+          ['(cc[3,4])["y"]', 4],
+          ['(tc[21]).v', new PowerScalar({ digits: new Uint8Array([9]), radix: RadixType.Q })],
+          ['(tc[21])[v]', new PowerScalar({ digits: new Uint8Array([9]), radix: RadixType.Q })],
+          ['tc[21]["v"]', new PowerScalar({ digits: new Uint8Array([9]), radix: RadixType.Q })]
+        ]) {
+          const actual = await evalExpression(input as string)
+
+          assert.deepStrictEqual(actual, expected, `mismatch actual=${actual} expected=${expected}`)
+        }
+      })
+    })
   })
 
   describe('arithmetic', () => {

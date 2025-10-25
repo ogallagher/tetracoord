@@ -148,6 +148,8 @@ _The value for **category** in the below table is implied same as previous row i
 | | vector magnitude | `\|<v>\|` | `\|tc[303]\|`<br/> `\|-2 * cc[3, 4]\|` | Get the magnitude of a vector. |
 | | | | | _Note vector multiply and divide are not defined._ |
 | | | | | |
+| **vector** component | vector component access | `<vector>.<cmp>` or `<vector>[<cmp>]` or<br> `<vector>["<cmp>"]` | `cc[1,2].x` `cc[3,4][y]` `tc[21].v` | Returns a scalar component of the requested vector. Only valid for reference/read; cannot be used for assignment to write to the component like `cc[0,0].x = 1`. |
+| | | | | |
 | **semiscalar/hybrid** arithmetic operator | hybrid multiply | `*` | `0d1.0 * cc[6*1.5, 4*1.5]` | The result vector will have a magnitude multiplied by the scalar operand. |
 | | hybrid divide | `/` | `cc[9,6] / 1.5` | The result vector will have a magnitude divided by the scalar operand. |
 | | hybrid exponent/power | `<base>**<exp>` | `tc[0q2] ** 0d3` | Equivalent to normalizing as a unit vector and multiplying by the original magnitude raised to an exponent. |

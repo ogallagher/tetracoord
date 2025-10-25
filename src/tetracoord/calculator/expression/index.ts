@@ -3,7 +3,7 @@ import { parse } from "../parser"
 import { RadixType, PowerScalar, parsePowerScalar } from "../../scalar"
 import { Tetracoordinate, CartesianCoordinate, VectorType } from "../../vector"
 import { type ExpressionValue, type ExpressionTree, type ExpressionLeaf, type ExpressionInnerValue, ExpressionValueCollection } from "./const"
-import { RADIX_PREFIX, IRR_SUFFIX_I, IRR_SUFFIX_DOTS, IRR_SUFFIX_OP, RADIX_PREFIX_OP, NEG_OP, MUL_OP, EQ_LOOSE_OP, VAR_ACCESS_DOT_OP, VAR_ACCESS_BRACKET_OP, VAR_CTX_ID, POS_OP, ABS_GROUP_OP, DIV_OP, EXP_OP, ITEM_DELIM_OP, VEC_ACCESS_OP, EQ_STRICT_OP, NEQ_STRICT_OP, GROUP_OP, ASSIGN_OP, VAR_ANS_ID, EXPR_CALC_ACCESS_OP, CALL_OP } from "../symbol"
+import { RADIX_PREFIX, IRR_SUFFIX_I, IRR_SUFFIX_DOTS, IRR_SUFFIX_OP, RADIX_PREFIX_OP, NEG_OP, MUL_OP, EQ_LOOSE_OP, VAR_ACCESS_DOT_OP, VAR_ACCESS_BRACKET_OP, VAR_CTX_ID, POS_OP, ABS_GROUP_OP, DIV_OP, EXP_OP, ITEM_DELIM_OP, VEC_ACCESS_OP, EQ_STRICT_OP, NEQ_STRICT_OP, GROUP_OP, ASSIGN_OP, VAR_ANS_ID, EXPR_CALC_ACCESS_OP, CALL_OP, TCOORD_V, CCOORD_X, CCOORD_Y } from "../symbol"
 import { VariableContext } from "../variablecontext"
 import { EXPR_CALC_TYPE, ExpressionCalculator } from "./expressioncalculator"
 import { deserialize, SerialExprCalc } from "../../serializer"
@@ -105,6 +105,17 @@ function parseScalarNode(node: ExpressionTree, radixType: RadixType): PowerScala
     throw new SyntaxError(`invalid scalar number node=${node}`)
   }
 }
+
+/**
+ * Parse a value as a string which subscript parser would recognize as a string (quoted) or an identifier (unquoted).
+ */
+const parseString = (node: string|[undefined, string]) => (
+  typeof node !== 'string'
+  // quoted string literal
+  ? (node as ExpressionTree)[1] as string
+  // unquoted identifier treated as string
+  : node
+)
 
 /**
  * Return the negative of a value.
@@ -268,6 +279,13 @@ function evalEq(op: '===' | '==', a: ExpressionValue, b: ExpressionValue): boole
   }
 }
 
+/**
+ * 
+ * @param acc 
+ * @param varCtxId 
+ * @param varCtxKey 
+ * @returns `VariableContext` instance member key.
+ */
 function assertVarAccess(acc: ExpressionTree | ExpressionLeaf, varCtxId: ExpressionTree | ExpressionLeaf, varCtxKey: ExpressionTree | ExpressionLeaf) {
   if (acc === VAR_ACCESS_DOT_OP || acc === VAR_ACCESS_BRACKET_OP) {
     // confirm variable belongs to VariableContext
@@ -279,14 +297,10 @@ function assertVarAccess(acc: ExpressionTree | ExpressionLeaf, varCtxId: Express
     }
 
     // evaluate literal string key like var["key"] same as var[key]
-    return (
-      typeof varCtxKey !== 'string'
-        ? (varCtxKey as ExpressionTree)[1] as string
-        : varCtxKey
-    )
+    return parseString(varCtxKey as string|[undefined, string])
   }
   else {
-    throw new SyntaxError(`cannot access ${varCtxId} ${acc} ${varCtxKey} that doesn't belong to ${VAR_CTX_ID}`)
+    throw new SyntaxError(`cannot access parent=${varCtxId} access-op=${acc} member=${varCtxKey} that doesn't belong to ${VAR_CTX_ID}`)
   }
 }
 
@@ -472,13 +486,40 @@ async function parseExpressionTree(node: ExpressionTree, radixCtx: RadixType = R
     )
   }
   else if (op === VAR_ACCESS_DOT_OP || op === VAR_ACCESS_BRACKET_OP) {
-    // evaluate left variable reference
-    const varCtxKey = assertVarAccess(op, a, b)
-    if (varCtx === undefined) {
-      throw new Error(`cannot evaluate reference ${node} without variable context`)
+    // vector component access or context variable access
+    if (Array.isArray(a)) {
+      try {
+        const vector = await parseExpressionTree(a, radixCtx, varCtx) as Tetracoordinate|CartesianCoordinate
+        const cmp = parseString(b as string|[undefined, string])
+        if (vector instanceof Tetracoordinate) {
+          if (cmp !== TCOORD_V) {
+            throw new Error(`tcoord component=${cmp} must be ${TCOORD_V}`)
+          }
+          return vector.value
+        }
+        else if (vector instanceof CartesianCoordinate) {
+          if (cmp !== CCOORD_X && cmp !== CCOORD_Y) {
+            throw new Error(`ccoord component=${cmp} must be ${CCOORD_X} or ${CCOORD_Y}`)
+          }
+          return vector.v[cmp]
+        }
+        else {
+          throw new Error(`cannot access member/component=${cmp} of non vector parent=${vector}`)
+        }
+      }
+      catch (err) {
+        throw new Error(`cannot evaluate vector=${a} component=${b} access`, {cause: err})
+      }
     }
+    else {
+      // evaluate context variable reference
+      const varCtxKey = assertVarAccess(op, a, b)
+      if (varCtx === undefined) {
+        throw new Error(`cannot evaluate reference ${node} without variable context`)
+      }
 
-    return varCtx.get(varCtxKey)
+      return varCtx.get(varCtxKey)
+    }
   }
   else if (op !== undefined) {
     // operator expression

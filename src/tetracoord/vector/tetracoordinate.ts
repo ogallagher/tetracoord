@@ -22,6 +22,7 @@ import type { SerialTetracoord } from "../serializer/const"
 export type TetracoordDigit = 0|1|2|3
 export type Quads = TetracoordDigit[] | string
 export type TetracoordBytes = Uint8Array | imaginary
+export type TetracoordComponent = 'v'
 
 // classes
 

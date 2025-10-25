@@ -17,6 +17,7 @@ export const TRIG_SIN_PI_OVER_3 = TRIG_COS_PI_OVER_6
 export const TRIG_COS_PI_OVER_3 = TRIG_SIN_PI_OVER_6
 
 export type RawCartesianCoord = PtLike
+export type CartesianComponent = 'x'|'y'
 
 export class CartesianCoordinate implements SerialCartesianCoord {
   type: VectorTypeCC = VectorType.CCoord
