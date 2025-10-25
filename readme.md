@@ -202,9 +202,50 @@ npm run cli
 
 We can write custom methods that operate on scalar and vector values, and call them within calculator expressions.
 
-To do so, create a module file (must be `js` if using compiled cli calculator, but can be `ts` if running from source with `tsx`) that default exports a single subclass of `ExpressionCalculator`. See `test/res/exprcalc_vectoravg.ts` as an example, which returns the average magnitude of a list of vectors, which can be a mix of tcoord and tcoord values.
+To do so, create a module file (must be `js` if using compiled cli calculator, or `ts` if running from source with `tsx`) that default exports a single subclass of `ExpressionCalculator`. It can be a common-js or es-module file. See `test/res/exprcalc_vectoravg.ts` as an example, which returns the average magnitude of a list of vectors, which can be a mix of tcoord and tcoord values. Below is the same example, written in es-module JS, using the installed `tetracoord` package.
 
-> **WARNING** This feature is inconsistent when importing `.ts` modules. Delete all compiled `.js` before attempting. Otherwise, compile and import as `.js`.
+<details>
+<summary><code>exprcalc_vectoravg.js</code></summary>
+
+```javascript
+import tc from "tetracoord"
+
+export default class VectorAverageMagnitude extends tc.calculator.ExpressionCalculator {  
+  /**
+   * @param args Collection of vectors
+   * @returns Average magnitude.
+   */
+  eval(args) {
+    try {
+      // handle no args
+      if (args === undefined) {
+        return 0
+      }
+
+      const vectors = args.items
+      const count = vectors.length
+      const sum = (
+        vectors
+        .map(v => {
+          if (v instanceof tc.vector.Tetracoordinate) {
+            return v.magnitudeFromCartesian 
+          }
+          else {
+            return v.magnitude
+          }
+        })
+        .reduce((sum, mag) => sum + mag)
+      )
+
+      return sum / count
+    }
+    catch (err) {
+      throw new EvalError(`failed to calculate average magnitude of ${args}`, {cause: err})
+    }
+  }
+}
+```
+</details>
 
 Now we can reference it within an expression when running the cli calculator.
 
@@ -224,7 +265,9 @@ npm run cli
 
 ### Tests
 
-Run all tests with `npm run test`.
+Run all tests with `npm run test`. 
+
+> **WARNING** Tests will fail if compiled JS files are present. Delete them with commands like `npm run clean` before running TS tests if after compiling. 
 
 Pass opts and file patterns to `mocha` with `npm run _test -- <opts> <files>`.
 

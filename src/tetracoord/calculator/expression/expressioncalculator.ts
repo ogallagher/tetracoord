@@ -1,7 +1,7 @@
 import { ExpressionInnerValue } from "./const"
 import { evalExpression } from "."
 import { SerialExprCalc } from "../../serializer"
-import { EXPR_CALC_ACCESS_OP } from "../symbol"
+import { EXPR_CALC_ACCESS_OP, STR_DQUOTE } from "../symbol"
 
 export type ExprCalcType = 'exprcalc'
 export const EXPR_CALC_TYPE: ExprCalcType = 'exprcalc'
@@ -43,7 +43,9 @@ export class ExpressionCalculator implements SerialExprCalc {
     return [
       EXPR_CALC_TYPE,
       EXPR_CALC_ACCESS_OP[0],
+      STR_DQUOTE,
       this.filePath,
+      STR_DQUOTE,
       EXPR_CALC_ACCESS_OP[1]
     ].join('')
   }

@@ -3,6 +3,7 @@
   "version": "0.7.0",
   "description": "Tetracoordinates engine, calculator.",
   "main": "index.js",
+  "type": "commonjs",
   "scripts": {
     "_test": "mocha --import=tsx",
     "test": "npm run _test -- test/*.ts",
