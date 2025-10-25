@@ -2,6 +2,7 @@ import { ExpressionInnerValue } from "./const"
 import { evalExpression } from "."
 import { SerialExprCalc } from "../../serializer"
 import { EXPR_CALC_ACCESS_OP, STR_DQUOTE } from "../symbol"
+import { VariableContext } from "../variablecontext"
 
 export type ExprCalcType = 'exprcalc'
 export const EXPR_CALC_TYPE: ExprCalcType = 'exprcalc'
@@ -25,7 +26,7 @@ export class ExpressionCalculator implements SerialExprCalc {
    * @throws {EvalError} Something failed (ex. unsupported arguments).
    * @throws {Error} Subclass does not implement this method.
    */
-  eval(_args?: ExpressionInnerValue): ExpressionInnerValue {
+  eval(_args?: ExpressionInnerValue, _varCtx?: VariableContext): ExpressionInnerValue {
     throw new Error(`expression calculator subclass must implement eval`)
   }
 

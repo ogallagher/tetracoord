@@ -443,15 +443,18 @@ async function parseExpressionTree(node: ExpressionTree, radixCtx: RadixType = R
 
     // perform call
     return exprCalc.eval(
-      args === null
-      // no args
-      ? undefined
-      // value collection
-      : (
-        args instanceof ExpressionValueCollection
-        ? args
-        : new ExpressionValueCollection([args as ExpressionValue])
-      )
+      (
+        args === null
+        // no args
+        ? undefined
+        // value collection
+        : (
+          args instanceof ExpressionValueCollection
+          ? args
+          : new ExpressionValueCollection([args as ExpressionValue])
+        )
+      ),
+      varCtx
     )
   }
   else if (op === ASSIGN_OP && b !== undefined) {
