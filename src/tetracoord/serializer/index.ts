@@ -72,7 +72,7 @@ export async function deserialize(obj: Serializable|ExpressionPrimitiveValue): P
     case VectorType.TCoord:
       const tc = obj as SerialTetracoord
       tc.value = await deserialize(tc.value) as PowerScalar
-      return new Tetracoordinate(tc as Tetracoordinate)
+      return new Tetracoordinate(tc.value as PowerScalar, undefined, tc.num_levels)
       
     case VectorType.CCoord:
       const cc = obj as SerialCartesianCoord
